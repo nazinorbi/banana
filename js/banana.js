@@ -377,7 +377,7 @@
                 } else if(activeImageIndex + after >= maxThumb) {
                     console.log('előről hátra');
                     if(i >= activeImageIndex - before && i < objectSize) {
-
+                        startIntoEnd();
                         show(active * thumbnailWidth - isOutside);
                         active++;
                     } else if(i < activeImageIndex - before - displayThumbNumber) {
@@ -391,6 +391,9 @@
                 }
             }
 
+            function startIntoEnd() {
+
+            }
             $('.thumbnail').css({height: $('.thumb').first().height()});
 
         },
