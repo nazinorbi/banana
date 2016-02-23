@@ -1,0 +1,380 @@
+body{
+    background-color: #2e2e2e;
+}
+@font-face {
+    font-family: Players;
+    /*src: url(../Font/Guifx.ttf);*/
+}
+.csopi {
+    position: absolute;
+    z-index: 1500;
+}
+/* box */
+    .box {
+        width: auto;
+    }
+
+/* image */
+.image {
+    display: none;
+    position: relative;
+    float: left;
+    flex: 1;
+}
+
+.active {
+    display: inline-table;
+    z-index: 1000;
+}
+
+.active img {
+    height: 100%;
+    display: block;
+}
+
+.inactive {
+    display: none;
+}
+
+.gallery {
+    position: relative;
+    z-index: 0;
+}
+/* bullet */
+    .bullet_1 {
+        //height: 25px;
+        z-index: 1000;
+        position: absolute;
+        width: auto;
+        left: 0px;
+    }
+    .bullet {
+    }
+    .bulletInactive {
+        float: left;
+        width: 14px;
+        height: 14px;
+        border-radius: 10px;
+        margin: 5px 10px 5px 10px;
+        border: 2px solid gainsboro;
+    }
+    .inner {
+        position: relative;
+        width: 8px;
+        height: 8px;
+        right: -4px;
+        top: 4px;
+        border-radius: 5px;
+    }
+
+    .bulletInactive:hover {
+        float: left;
+        width: 14px;
+        height: 14px;
+        border-radius: 10px;
+        margin: 5px 10px 5px 10px;
+        border: 2px solid grey;
+    }
+
+    .bulletActive {
+        border: none;
+        float: left;
+        width: 18px;
+        height: 18px;
+        border-radius: 18px;
+        margin: 5px 15px 5px 15px;
+        background-image:radial-gradient(ellipse at center, rgba(204, 204, 204, 0.9), rgba(234,234,234, 0.1))
+    }
+
+    .bulletActive:hover {
+        float: left;
+        width: 14px;
+        height: 14px;
+        border-radius: 10px;
+        margin: 5px 15px 5px 15px;
+        background-image:radial-gradient(ellipse at center, rgba(128, 128, 128, 0.1), rgba(148,148,148, 0.1))
+    }
+    .outside {
+        margin-top: 0;
+        padding: 3px 5px 3px 5px;
+        position: relative;
+        height: 100%;
+        border-radius: 7px;
+        background-color: #1e1e1e;
+        text-align: center;
+        border: 2px solid #FFFAFA;
+        color: #fffafa;
+        z-index: 1000;
+    }
+/* bullet end */
+/* title */
+    .title{
+        height: 34px;
+        color: #fffafa;
+        text-align: center;
+    }
+    .inside p {
+        background-color: #fffafa;
+        height: 34px;
+        opacity: 0.3;
+        transform: translateY(44px);
+    }
+
+    .over {
+        width: 100%;
+        margin: 0;
+        z-index: 1000;
+        bottom: 34px;
+        color: #fffafa;
+        position: relative;
+    }
+    .over p{
+        padding: 8px;
+        margin: 0;
+        background-color: rgba(0,0,0,0.4);
+        z-index: 1500;
+    }
+/* title end */
+/* arrow start */
+.arrow {
+    position: relative;
+    width: 40px;
+    height: 60px;
+    cursor: pointer;
+    opacity: 0.5;
+    overflow: hidden;
+    z-index: 1000;
+    font-family: Arrow;
+    font-size: 60px;
+    color: #fffafa;
+}
+
+@font-face {
+    font-family: Arrow;
+    src: url(Arrow_1.ttf);
+}
+
+.arrowR {
+    float: right;
+
+}
+.arrowL {
+    transform: rotate(180deg);
+}
+.banana19l { background-position: -5px -35px; }
+.banana19r { background-position: -60px -30px; }
+.banana19l:hover { background-position: -125px -35px; }
+.banana19r:hover { background-position: -100px -30px; }
+.banana19l.banana19ldn { background-position: -245px -35px; }
+.banana19r.banana19rdn { background-position: -305px -35px; }
+
+/* arrow end */
+/* Player start */
+    .player {
+        font-family: Players;
+        font-size: 18px;
+        position: relative;
+        cursor: pointer;
+        z-index: 1100;
+        color: #FFFAFA;
+    }
+    .inactive{
+        display: none;
+    }
+
+    /* over */
+        .player div {
+            padding: 8px;
+            margin: 0 5px 0 5px;
+        }
+        .player div:hover {
+            color: #fffafa;
+            opacity: 0.4;
+        }
+        .br_over{
+            bottom: 34px;
+        }
+        .br_over div {
+            float: right;
+        }
+        .bl_over div{
+            float: left;
+        }
+        .tl_over {
+            width: 100%;
+            background-color: rgba(0,0,0,0.4);
+            top: 34px;
+        }
+        .tl_over div {
+            float: left;
+        }
+        .tr_over {
+            width: 100%;
+            background-color: rgba(0,0,0,0.4);
+            top: 34px;
+        }
+        .tr_over div {
+             float: right;
+        }
+    /* inside */
+        .tr_inside {
+            background-color: rgba(0,0,0,0.4);
+            align-self: flex-end;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+        .tr_inside div{
+            float: right;
+        }
+        .tl_inside {
+            background-color: rgba(0,0,0,0.4);
+            align-self: flex-start;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+        .tl_inside div {
+            float: left;
+        }
+        .br_inside {
+            background-color: rgba(0,0,0,0.4);
+            align-self: flex-end;
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+        .br_inside div {
+            float: right;
+        }
+/* Player end */
+
+/* thumbnail */
+    .thumbnail {
+        margin: 0;
+        background-color: #666345;
+        width: 50px;
+    }
+    .thumbL {
+        float: left;
+    }
+    .thumbR {
+        float: right;
+    }
+    .thumb {
+        width: 150px;
+        height: 84px;
+        position: absolute;
+        border: 1px solid yellow;
+    }
+    .thumbParent > img {
+        max-height: 100px;
+    }
+    .thumbParent {
+        float: right;
+    }
+    .sideThumb {
+        position: relative;
+    }
+    .notDisplay {
+        display: none;
+    }
+
+ /* verticalThumb */
+
+    .verticalThumb {
+        width: 330px;
+        float: left;
+        position: relative;
+        border: 1px solid yellow;
+    }
+    .verticalThumb div img {
+        width: 150px;
+        height: auto;
+        margin-top: 10px;
+        margin-right: 10px;
+    }
+    .activeThumb {
+        background-repeat: no-repeat;
+    }
+    .thumbHoriz {
+        width: 150px;
+        height: 100px;
+        background-repeat: no-repeat;
+        background-size: 150px 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 10px;
+    }
+    .thumbHoriz:nth-child(even) {
+        margin-left: 10px;
+    }
+    .thumbHoriz:nth-child(odd) {
+        margin-left: 10px;
+    }
+    .verticalThumb div :nth-child(even) {
+        float: left;
+    }
+
+/* addListSlider */
+    .listSlider {
+        width: 250px;
+        background-color: #171717;
+    }
+    .listSlider img {
+        width: 80px;
+        margin-left: 5px;
+        margin-top: 5px;
+    }
+    .listSlider > div {
+        position: absolute;
+        max-width: 240px;
+        height: 100px;
+        background-color: darkgrey;
+        margin-bottom: 5px;
+    }
+  /*  .listSlider > div:first-child {
+        margin-top: 5px;
+    }
+*/
+    .listSlider h3 {
+        position: relative;
+        margin: 15px 15px 0 0;
+        float: right;
+    }
+
+    .listSlider p {
+        margin: 5px;
+    }
+
+/* icon*/
+    .icon-plus1 {
+        opacity: 0.8;
+        color: white;
+        font-size: 15px;
+        line-height: 100px;
+    }
+    .thumbBackground {
+        width: 150px;
+        position: absolute;
+        height: 100px;
+        opacity: 0.8;
+        background-color: #000;
+        bottom: -110px;
+        left: 10px;
+        margin-top: 10px;
+    }
+    .ThumbActive{
+        opacity: 0;
+    }
+
+/* ImageNumber */
+    .imageNumber {
+        color: #FFFAFA;
+    }
+
+/* description */
+    .description {
+        display: flex;
+    }
+    .listSliderText {
+        text-align: justify;
+    }

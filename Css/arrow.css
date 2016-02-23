@@ -1,0 +1,32 @@
+.arrow {
+    position: relative;
+    /* size of arrow element */
+    /*width: 60px;
+    height: 60px;*/
+    cursor: pointer;
+    opacity: 0.5;
+    overflow: hidden;
+    z-index: 1000;
+    font-family: Arrow;
+    font-size: 60px;
+    color: #fffafa;
+
+}
+
+@font-face {
+ font-family: Arrow;
+ src: url(Arrow_1.ttf);
+}
+
+.arrowR {
+
+}
+.arrowL {
+    transform: rotate(180deg);
+}
+.banana19l { background-position: -5px -35px; }
+.banana19r { background-position: -60px -30px; }
+.banana19l:hover { background-position: -125px -35px; }
+.banana19r:hover { background-position: -100px -30px; }
+.banana19l.banana19ldn { background-position: -245px -35px; }
+.banana19r.banana19rdn { background-position: -305px -35px; }

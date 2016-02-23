@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="Css/banana.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="Font/font-awesome-4.5.0/css/font-awesome.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="Css/font-awesome" media="screen" />
+    <script type="text/javascript" src="js/jquery-2.2.0.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.10.3.js"></script>
+    <script type="text/javascript" src="../millions/Js/Functions/print_r.js"></script>
+    <script type="text/javascript" src="js/banana.js"></script>
+    <script type="text/javascript" src="js/jquery.fakecrop.js"></script>
+</head>
+<script>
+    $(document).ready(function() {
+        $('.gallery').banana({
+            gallery: {
+                speed: 400,
+                title: {
+                    position: 'inside'
+                },
+                playerPosition: {
+                    position: 'over',
+                    corner: 'bottom-right'
+                }
+            },
+            switches: {
+                imageNumber: true,
+                title: true,
+                bullet: true,
+                autoPlay: false,
+                player: false,
+                arrow: true,
+                thumbnail: true,
+                addVerticalThumbnail: false,
+                addListSlider: false
+            }
+        });
+        $('.thumb img').fakecrop();
+    });
+</script>
+ <small>Image gallery (ps, try using mouse scroll wheel) </small>
+
+<div class='box' style="display: flex; justify-content: center">
+    <div class="gallery">
+        <div class='image' rel="example_group" _title="Numeros zerus" text="Lorem s ipsum dolor sit amet, consectetur adipiscing elit." >
+            <img alt="" src="images/1.jpg" />
+        </div>
+        <div class='image' _title="numerus uno" rel="example_group" text="Etiam viverra tempor sodales. " >
+            <img alt="" src="images/2.jpg" />
+        </div>
+        <div class='image' rel="example_group" text="Curabitur blandit erat vitae mollis semper.">
+            <img alt="" src="images/3.jpg" />
+        </div>
+        <div class='image' rel="example_group" text="Praesent placerat enim a leo facilisis commodo.">
+            <img alt="" src="images/4.jpg" />
+        </div>
+        <div class='image' rel="example_group" text="Vestibulum fringilla mi in faucibus condimentum.">
+            <img alt="" src="images/7.jpg" />
+        </div>
+        <div class='image' rel="example_group" text="Praesent lacus velit, venenatis a dapibus eu, volutpat sed metus." >
+            <img alt="" src="images/5.jpg" />
+        </div>
+        <div class='image' rel="example_group" text="Ut ac ex vehicula, scelerisque leo placerat, vehicula erat. ">
+            <img alt="" src="images/6.jpg" />
+        </div>
+        <div class='image' rel="example_group" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit." >
+            <img alt="" style="" src="images/10.jpg" />
+        </div>
+        <div class='image' rel="example_group" text="Curabitur blandit erat vitae mollis semper.">
+            <img alt="" style="" src="images/9.jpg" />
+        </div>
+        <div class='image' rel="example_group" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit.">
+            <img alt="" style="" src="images/14.jpg" />
+        </div>
+        <div class='image' rel="example_group" text="Vestibulum fringilla mi in faucibus condimentum.." >
+            <img alt="" style="" src="images/12.jpg" />
+        </div>
+        <div class='image' rel="example_group" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit.">
+            <img alt="" style="" src="images/13.jpg" />
+        </div>
+    </div>
+</div>
+
+
+</html>
