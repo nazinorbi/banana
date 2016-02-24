@@ -304,25 +304,23 @@
             }
         },
         _addThumbnail = function () {
-            var sideThumb = '<div class="sideThumb">',
+            var sideThumb = '<div class="sideThumb" style="transform: translateY(-110px)">',
                 thumbnailL = '<div class="thumbnail thumbL"></div>',
                 thumbnailR = '<div class="thumbnail thumbR"></div>';
-            $this.append(sideThumb + thumbnailL + '<div class="thumbParent"></div>' + thumbnailR + '</div></div>');
+            $this.append(sideThumb + thumbnailL + '<div class="thumbParent" style="height: 102px; width: '+settings.galleryWidth+'px"></div>' + thumbnailR + '</div></div>');
 
             var thumbnailWidth = settings.thumb.width + settings.thumb.margin + settings.thumb.borderWidth / 2,
-                sliderWidth = settings.galleryWidth,
-                maxThumb = _round(sliderWidth / (thumbnailWidth)),
+                maxThumb = _round(settings.galleryWidth / (thumbnailWidth)),
                 displayThumbNumber = objectSize - maxThumb, //12-9 = 3
                 thumb = $('.thumbParent'),
-                x,
                 active = 0,
+                x,
                 after = ((maxThumb - 1) / 2),
                 before = ((maxThumb - 1) / 2),
                 endToStart = 0,
                 isOutside = (thumbnailWidth * maxThumb - settings.galleryWidth) / 2,
                 addImage = function (i) {
-                    var image = obj.eq(i).children().clone();
-                    $('.thumbParent').append(image);
+                    $('.thumbParent').append(obj.eq(i).children().clone());
                 },
                 show = function(x) {
                     currentListSlider.css({
@@ -335,8 +333,6 @@
                     currentListSlider.css({display: 'none'});
                 };
 
-            $('.sideThumb').css({transform: 'translateY(-110px)'});
-            thumb.css({height: '102px', width: settings.galleryWidth});
             thumbOpit = { maxThumb: maxThumb, fullThumbWidth: thumbnailWidth, isOutside: isOutside
 
             };
@@ -348,52 +344,74 @@
                 var currentListSlider = thumb.children().eq(i);
 
                 if ( activeImageIndex - before >= 0 && (activeImageIndex + after) < objectSize-1 ) {
-                    if (i < activeImageIndex - before || i > activeImageIndex + after) {
-                        display(currentListSlider);
-                    } else if (i < activeImageIndex && i >= activeImageIndex - before) {
-                        show(active * thumbnailWidth -  isOutside);
-                        before--;
-                        active++;
-                    } else if (i == activeImageIndex) {
-                        show(settings.galleryWidth / 2 - settings.thumb.width / 2 - 2);
-                        active++;
-                    } else if (i > activeImageIndex && i < activeImageIndex + after +1 ) {
-                        show(active * thumbnailWidth - isOutside);
-                        active++;
-                    }
+                    console.log('könzbenső');
+                    middle(i, currentListSlider);
                 }
                 else if (activeImageIndex-before < 0) {
-                    if(i <= activeImageIndex + before) {
-                        x = ((active) * (thumbnailWidth) - isOutside) - (activeImageIndex - before) * thumbnailWidth;
-                        show(x);
-                    }
-                    else if(i > activeImageIndex + displayThumbNumber + before) {
-                        show(endToStart * thumbnailWidth  - isOutside);
-                        endToStart++;
-                    } else {
-                        display(currentListSlider);
-                    }
-                    active++;
-                } else if(activeImageIndex + after >= maxThumb) {
+                    console.log('hátulról előre');
+                    endMoveStart(i, currentListSlider);
+                }
+                else if(activeImageIndex + after >= maxThumb) {
                     console.log('előről hátra');
-                    if(i >= activeImageIndex - before && i < objectSize) {
-                        startIntoEnd();
-                        show(active * thumbnailWidth - isOutside);
-                        active++;
-                    } else if(i < activeImageIndex - before - displayThumbNumber) {
-                        x = (objectSize-1-activeImageIndex+ before +1+endToStart) * thumbnailWidth - ( (isOutside));
-                        show(x);
-                        endToStart++;
-                    }
-                    else{
-                        display(currentListSlider);
-                    }
+                    startMoveEnd(i, currentListSlider);
+                }
+
+            }
+
+            startIntoEnd();
+
+            function middle(i, currentListSlider) {
+                if (i < activeImageIndex - before || i > activeImageIndex + after) {
+                    display(currentListSlider);
+                } else if (i < activeImageIndex && i >= activeImageIndex - before) {
+                    show(active * thumbnailWidth -  isOutside);
+                    before--;
+                    active++;
+                } else if (i == activeImageIndex) {
+                    show(settings.galleryWidth / 2 - settings.thumb.width / 2 - 2);
+                    active++;
+                } else if (i > activeImageIndex && i < activeImageIndex + after +1 ) {
+                    show(active * thumbnailWidth - isOutside);
+                    active++;
+                }
+            }
+            function startMoveEnd(i, currentListSlider) {
+                if(i >= activeImageIndex - before && i < objectSize) {
+                    show(active * thumbnailWidth - isOutside);
+                    active++;
+                } else if(i < activeImageIndex - before - displayThumbNumber) {
+                    x = (objectSize-1-activeImageIndex+ before +1+endToStart) * thumbnailWidth - ( (isOutside));
+                    show(x);
+                    endToStart++;
+                }
+                else{
+                    display(currentListSlider);
+                }
+            }
+            function endMoveStart(i, currentListSlider) {
+                if(i <= activeImageIndex + before) {
+                    x = ((active) * (thumbnailWidth) - isOutside) - (activeImageIndex - before) * thumbnailWidth;
+                    show(x);
+                }
+                else if(i > activeImageIndex + displayThumbNumber + before) {
+                    show(endToStart * thumbnailWidth  - isOutside);
+                    endToStart++;
+                } else {
+                    display(currentListSlider);
+                }
+                active++;
+            }
+            function startIntoEnd() {
+                if(thumb.children().first().is(':visible')) {
+                    var move = thumb.children().first().clone();
+                    thumb.children().first().remove();
+                    thumb.children().last().after(move);
+                    startIntoEnd();
                 }
             }
 
-            function startIntoEnd() {
+      //      startIntoEnd();
 
-            }
             $('.thumbnail').css({height: $('.thumb').first().height()});
 
         },
@@ -788,7 +806,7 @@
             gallery: {
                  activeImageIndex: function() {
                     //return  Math.floor((Math.random() * (objectSize-1)) +1);
-                     return 10;
+                     return 2;
                  },
                // activeImageIndex: 4,
                 galleryHeight: 650,
