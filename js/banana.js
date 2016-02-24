@@ -333,7 +333,7 @@
                     currentListSlider.css({display: 'none'});
                 };
 
-            thumbOpit = { maxThumb: maxThumb, fullThumbWidth: thumbnailWidth, isOutside: isOutside
+            thumbOpit = { maxThumb: maxThumb, fullThumbWidth: thumbnailWidth, isOutside: isOutside, displayThumbNumber: displayThumbNumber
 
             };
 
@@ -358,7 +358,7 @@
 
             }
 
-            startIntoEnd();
+            _startIntoEnd(thumb);
 
             function middle(i, currentListSlider) {
                 if (i < activeImageIndex - before || i > activeImageIndex + after) {
@@ -400,14 +400,6 @@
                     display(currentListSlider);
                 }
                 active++;
-            }
-            function startIntoEnd() {
-                if(thumb.children().first().is(':visible')) {
-                    var move = thumb.children().first().clone();
-                    thumb.children().first().remove();
-                    thumb.children().last().after(move);
-                    startIntoEnd();
-                }
             }
 
       //      startIntoEnd();
@@ -467,28 +459,25 @@
 
             switch (thumbName) {
                 case '_thumbStep':
-                    thumb = $('.thumbParent').children();
+                    thumb = $('.thumbParent');
 
-                    next = function (i, index) {
-                        currentIndex = parseInt(thumb.eq(i).css('transform').split(',')[4]);
-                        move = currentIndex + (thumbOpit.fullThumbWidth) * (index*-1);
-
-                        console.log('i: ' +i+' move: ' +move);
-                        thumb.eq(i).css({transform: 'translateX(' + move  + 'px)', width: settings.thumb.width, position: 'absolute'});
+                    next = function (index, thumb) {
+                        for(var i = thumbOpit.displayThumbNumber+1; i < objectSize; i++) {
+                            currentIndex = parseInt(thumb.children().eq(i).css('transform').split(',')[4]);
+                            move = currentIndex + (thumbOpit.fullThumbWidth) * (index*-1);
+                            thumb.children().eq(i).css({transform: 'translateX(' + move  + 'px)', width: settings.thumb.width, position: 'absolute'});
+                        }
                     };
-                    hidden = function (i) {
-                        thumb.eq(i).css({'display': 'none', transform: ''});
+                    hidden = function (thumb) {
+                        thumb.children().eq(thumbOpit.displayThumbNumber).css({'display': 'none', transform: ''});
                     };
-                    show = function (i, index, active) {
-                        currentIndex = parseInt(thumb.eq(i).css('transform').split(',')[4]);
-                        console.log('isOutside: '+ thumbOpit.isOutside);
+                    show = function (thumb, index) {
+                        var move = thumb.children().first().clone();
+                        thumb.children().last().after(move);
+                        thumb.children().first().remove();
 
-                           // move = ((thumbOpit.maxThumb -1) * thumbOpit.fullThumbWidth)*index - thumbOpit.isOutside;
-                            move  = (active * thumbOpit.fullThumbWidth) - thumbOpit.isOutside;
-                        console.log('active: '+ active);
-
-
-                        thumb.eq(i).css({
+                        move  = (thumbOpit.maxThumb-1) * thumbOpit.fullThumbWidth- thumbOpit.isOutside;
+                        thumb.children().last().css({
                             display: 'block',
                             transform: 'translateX('+ move + 'px)', width: settings.thumb.width, position: 'absolute'
                         });
@@ -527,83 +516,18 @@
             }
         },
         _thumbnailStep = function (index, thumb, next, show, hidden) {
-            var isHidden = true,
-                isView = true,
-                active = 0;
 
             if (index == 1) {
-                for (var i = 0; i <= lastImageIndex; i++) {
-                    if (i == 0) {
-                        if (thumb.eq(lastImageIndex).is(':hidden') && thumb.eq(i).is(':visible') && isHidden) {
-                            hidden(i);
-                            isHidden = false;
-                        } else if (thumb.eq(i).is(':hidden') && thumb.eq(lastImageIndex).is(':visible') && isView) {
-                            show(i, index, active);
-                            isView = false;
-                            active++;
-                        } else {
-                            next(i, index, active);
-                            active++;
-                        }
-                    }
-                    else {
-                        if (thumb.eq(i).is(':visible') && thumb.eq(i - 1).is(':hidden') && isHidden) {
-                            hidden(i);
-                            isHidden = false;
-                        } else if (thumb.eq(i).is(':hidden') && thumb.eq(i - 1).is(':visible') && isView) {
-                            show(i, index, active);
-                            isView = false;
-                            active++;
-                        } else {
-                            next(i, index, active);
-                            active++;
-                        }
-                    }
-                }
-            } else if (index == -1) {
-                for (i = 0; i <= lastImageIndex; i++) {
-                    if (i == 0) {
-                        if (thumb.eq(i).is(':hidden') && thumb.eq(i + 1).is(':visible') && isView) {
-                            show(i, index, active);
-                            isView = false;
-                            active++;
-                        } else if (thumb.eq(i).is(':visible') && thumb.eq(i + 1).is(':hidden') && isHidden) {
-                            hidden(i);
-                            isHidden = false;
-                        } else {
-                            next(i, index, active);
-                            active++;
-                        }
-                    }
-                    else if (i == lastImageIndex) {
-                        if (thumb.eq(i).is(':hidden') && thumb.eq(0).is(':visible') && isView) {
-                            show(i, index, active=0);
-                            active++;
-                            isView = false;
-                        } else if (thumb.eq(i).is(':visible') && thumb.eq(0).is(':hidden') && isHidden) {
-                            hidden(i);
-                            isHidden = false;
-                        } else {
-                            next(i, index, active);
-                            active++;
-                        }
-                    }
-                    else {
-                        if (thumb.eq(i).is(':hidden') && thumb.eq(i + 1).is(':visible') && isView) {
-                            show(i, index, active);
-                            isView = false;
-                            active++;
-                        } else if (thumb.eq(i).is(':visible') && thumb.eq(i + 1).is(':hidden') && isHidden) {
-                            hidden(i);
-                            isHidden = false;
-                        } else {
-                            next(i, index, active);
-                            active++;
-                        }
-                    }
-                }
-            }
+                hidden(thumb);
+                next(index, thumb);
+                show(thumb);
 
+            }
+            else if (index == -1) {
+                hidden(thumb);
+                next(index, thumb);
+                show(thumb);
+            }
         },
         _verticalThumbStep = function (index) {
             var thumbActive = $('.ThumbActive'),
@@ -714,6 +638,14 @@
                 }
             }
         },
+        _startIntoEnd = function(thumb) {
+            if(thumb.children().first().is(':visible')) {
+                var move = thumb.children().first().clone();
+                thumb.children().first().remove();
+                thumb.children().last().after(move);
+            _startIntoEnd(thumb);
+            }
+        },
         _round = function (value, precision, mode) {
 
             var m, f, isHalf, sgn; // helper variables
@@ -806,7 +738,7 @@
             gallery: {
                  activeImageIndex: function() {
                     //return  Math.floor((Math.random() * (objectSize-1)) +1);
-                     return 2;
+                     return 10;
                  },
                // activeImageIndex: 4,
                 galleryHeight: 650,
