@@ -460,24 +460,41 @@
             switch (thumbName) {
                 case '_thumbStep':
                     thumb = $('.thumbParent');
+                     var i;
 
                     next = function (index, thumb) {
-                        for(var i = thumbOpit.displayThumbNumber+1; i < objectSize; i++) {
-                            currentIndex = parseInt(thumb.children().eq(i).css('transform').split(',')[4]);
-                            move = currentIndex + (thumbOpit.fullThumbWidth) * (index*-1);
-                            thumb.children().eq(i).css({transform: 'translateX(' + move  + 'px)', width: settings.thumb.width, position: 'absolute'});
+                        if(index == 1) {
+                            for(i = thumbOpit.displayThumbNumber+1; i < objectSize; i++) {
+                                currentIndex = parseInt(thumb.children().eq(i).css('transform').split(',')[4]);
+                                move = currentIndex + (thumbOpit.fullThumbWidth) * (index*-1);
+                                thumb.children().eq(i).css({transform: 'translateX(' + move  + 'px)', width: settings.thumb.width, position: 'absolute'});
+                            }
+                        } else if(index == -1) {
+                            console.log(index);
+                            for(i = objectSize-1; i > (objectSize-thumbOpit.maxThumb-1); i--) {
+                                currentIndex = parseInt(thumb.children().eq(i).css('transform').split(',')[4]);
+                                move = currentIndex + (thumbOpit.fullThumbWidth) * (index*-1);
+                                thumb.children().eq(i).css({transform: 'translateX(' + move  + 'px)', width: settings.thumb.width, position: 'absolute'});
+                            }
                         }
-                    };
-                    hidden = function (thumb) {
-                        thumb.children().eq(thumbOpit.displayThumbNumber).css({'display': 'none', transform: ''});
-                    };
-                    show = function (thumb, index) {
-                        var move = thumb.children().first().clone();
-                        thumb.children().last().after(move);
-                        thumb.children().first().remove();
 
-                        move  = (thumbOpit.maxThumb-1) * thumbOpit.fullThumbWidth- thumbOpit.isOutside;
-                        thumb.children().last().css({
+                    };
+                    hidden = function (thumb, hidden_i) {
+                        thumb.children().eq(hidden_i).css({'display': 'none', transform: ''});
+                    };
+                    show = function (index, thumb, show_i) {
+                        var show;
+                        if(index == 1) {
+                            show = thumb.children().first().clone();
+                            thumb.children().last().after(show);
+                            thumb.children().first().remove();
+                        } else if(index == -1) {
+                            show = thumb.children().last().clone();
+                            thumb.children().first().before(show);
+                            thumb.children().last().remove();
+                        }
+                        move  = (show_i.move) * thumbOpit.fullThumbWidth - thumbOpit.isOutside;
+                        thumb.children().eq(show_i.index).css({
                             display: 'block',
                             transform: 'translateX('+ move + 'px)', width: settings.thumb.width, position: 'absolute'
                         });
@@ -488,7 +505,7 @@
                     thumb = listSlider.children();
                     next = function (i, index) {
                         var currentIndex = parseInt(thumb.eq(i).css('transform').split(',')[5]),
-                            move = (currentIndex - (100 * index) - 5 * index);
+                            move = (currentIndex - (100 * index) - 5 * ind.dex);
                         thumb.eq(i).css({transform: "translate3d(5px," + move + "px, 0)"}).attr('data-sort', move);
                     };
                     show = function (i, index) {
@@ -516,17 +533,24 @@
             }
         },
         _thumbnailStep = function (index, thumb, next, show, hidden) {
+            var hidden_i, show_i;
 
             if (index == 1) {
-                hidden(thumb);
+                hidden_i = thumbOpit.displayThumbNumber;
+                show_i  = {index: objectSize-1, move: thumbOpit.maxThumb- 1};
+
+                hidden(thumb, hidden_i);
                 next(index, thumb);
-                show(thumb);
+                show(index, thumb, show_i);
 
             }
             else if (index == -1) {
-                hidden(thumb);
+                hidden_i = objectSize-1;
+                show_i = {index: thumbOpit.displayThumbNumber, move: 0 };
+
+                hidden(thumb, hidden_i);
                 next(index, thumb);
-                show(thumb);
+                show(index, thumb, show_i);
             }
         },
         _verticalThumbStep = function (index) {
