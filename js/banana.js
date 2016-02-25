@@ -179,7 +179,7 @@
             var arrowL = '<div class="arrow arrowL"><div class="arrowIsaideL">X</div></div>',
                 arrowR = '<div class="arrow arrowR"><div class="arrowInsideR">X</div></div>';
 
-            $this.find('.title').before(arrowR, arrowL);
+            obj.last().before(arrowR, arrowL);
             arrow = {arrowR: $('.arrowR'), arrowL: $('.arrowL')};
             _arrowStep()
         },
@@ -654,6 +654,7 @@
                 }
             }
             _addImageNumber(listSlider);
+            _startIntoEnd(listSlider);
 
         },
         _listSliderClickStep = function (clickedObj) {
@@ -773,7 +774,7 @@
             gallery: {
                  activeImageIndex: function() {
                     //return  Math.floor((Math.random() * (objectSize-1)) +1);
-                     return 5;
+                     return 8;
                  },
                // activeImageIndex: 4,
                 galleryHeight: 650,
