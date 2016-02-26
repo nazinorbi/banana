@@ -11,7 +11,7 @@
      */
     var arrow, arrowR, arrowL, $active_image = 0, settings, title, obj,
         switches, bullet, $this, autoPlay = false, thumbName, lastImageIndex,
-        activeImageIndex, _options, parent, objectSize, listSlider, thumbOpit,
+        activeImageIndex, _options, parent, objectSize, listSlider, thumbOpit, listThumbOpit,
 
     /*thumChose = {
      _listSliderStep: function(index) {_listSliderStep(index);},
@@ -456,14 +456,13 @@
         _thumbnailSwitch = function (index) {
             var move = '',
                 next, hidden, show, thumb, currentIndex,
-                listSlider = $('.listSlider'),
                 maxThumb = listSlider.children(':visible').length,
                 fullThumbWidth = settings.thumb.width + settings.thumb.margin + settings.thumb.borderWidth / 2;
 
             switch (thumbName) {
                 case '_thumbStep':
                     thumb = $('.thumbParent');
-                     var i;
+                    var i;
 
                     next = function (index, thumb) {
                         if(index == 1) {
@@ -505,26 +504,42 @@
                     _thumbnailStep(index, thumb, next, show, hidden);
                     break;
                 case '_listSliderStep':
-                    thumb = listSlider.children();
-                    next = function (i, index) {
-                        var currentIndex = parseInt(thumb.eq(i).css('transform').split(',')[5]),
-                            move = (currentIndex - (100 * index) - 5 * ind.dex);
-                        thumb.eq(i).css({transform: "translate3d(5px," + move + "px, 0)"}).attr('data-sort', move);
+                    console.log('thumb');
+                    thumb = $('.listSlider');
+                    thumbOpit = listThumbOpit;
+                    next = function (index, thumb) {
+                        if(index == 1) {
+                            for(i = listThumbOpit.displayThumbNumber; i < (objectSize-1); i++) {
+                                currentIndex = parseInt(thumb.children().eq(i).css('transform').split(',')[5]),
+                                    move = (currentIndex - (100 * index) - 5 * index);
+                                thumb.children().eq(i).css({transform: "translate3d(5px," + move + "px, 0)"}).attr('data-sort', move);
+                            }
+                        } else if(index == -1) {
+
+                        }
+
                     };
-                    show = function (i, index) {
+                    show = function (index, thumb, show_i) {
+                        var show;
                         if (index == 1) {
                             move = ((maxThumb - 1) * 100) + maxThumb * 5;
+                            show = thumb.children().first().clone();
+                            thumb.children().last().after(show);
+                            thumb.children().first().remove();
                         }
                         else if (index == -1) {
                             move = 5;
+                            show = thumb.children().last().clone();
+                            thumb.children().first().before(show);
+                            thumb.children().last().remove();
                         }
-                        thumb.eq(i).css({
+                        thumb.children().eq(show_i.index).css({
                             'display': 'block',
                             'transform': "translate3d(5px, " + move + "px, 0)"
                         }).attr('data-sort', move);
                     };
-                    hidden = function (i) {
-                        thumb.eq(i).css({display: 'none', transform: ''}).attr('data-sort', 'null');
+                    hidden = function (thumb, hidden_i) {
+                        thumb.children().eq(hidden_i).css({display: 'none', transform: ''}).attr('data-sort', 'null');
                     };
                     _thumbnailStep(index, thumb, next, show, hidden);
                     break;
@@ -621,6 +636,7 @@
                         listSlider.children().eq(i).children('.description').before('<h3 class="title">' + title + '</h3>');
                     }
                 };
+            listThumbOpit = {displayThumbNumber: displayThumbNumber};
 
             for (var i = 0; i < objectSize; i++) {
                 addImage(i);
