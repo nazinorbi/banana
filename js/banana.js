@@ -179,7 +179,7 @@
             var arrowL = '<div class="arrow arrowL"><div class="arrowIsaideL">X</div></div>',
                 arrowR = '<div class="arrow arrowR"><div class="arrowInsideR">X</div></div>';
 
-            obj.last().before(arrowR, arrowL);
+            obj.last().after(arrowR, arrowL);
             arrow = {arrowR: $('.arrowR'), arrowL: $('.arrowL')};
             _arrowStep()
         },
@@ -454,32 +454,25 @@
             }
         },
         _thumbnailSwitch = function (index) {
-            var move = '',
-                next, hidden, show, thumb, currentIndex,
-                maxThumb = listSlider.children(':visible').length,
-                fullThumbWidth = settings.thumb.width + settings.thumb.margin + settings.thumb.borderWidth / 2;
-
+            var move, i, next, hidden, show, thumb, currentIndex;
             switch (thumbName) {
                 case '_thumbStep':
                     thumb = $('.thumbParent');
-                    var i;
-
                     next = function (index, thumb) {
                         if(index == 1) {
                             for(i = thumbOpit.displayThumbNumber+1; i < objectSize; i++) {
-                                currentIndex = parseInt(thumb.children().eq(i).css('transform').split(',')[4]);
-                                move = currentIndex + (thumbOpit.fullThumbWidth) * (index*-1);
-                                thumb.children().eq(i).css({transform: 'translateX(' + move  + 'px)', width: settings.thumb.width, position: 'absolute'});
+                                step(thumb, i, index);
                             }
                         } else if(index == -1) {
-                            console.log(index);
                             for(i = objectSize-1; i > (objectSize-thumbOpit.maxThumb-1); i--) {
-                                currentIndex = parseInt(thumb.children().eq(i).css('transform').split(',')[4]);
-                                move = currentIndex + (thumbOpit.fullThumbWidth) * (index*-1);
-                                thumb.children().eq(i).css({transform: 'translateX(' + move  + 'px)', width: settings.thumb.width, position: 'absolute'});
+                                step(thumb, i, index);
                             }
                         }
-
+                        function step(thumb, i, index) {
+                            currentIndex = parseInt(thumb.children().eq(i).css('transform').split(',')[4]);
+                            move = currentIndex + (thumbOpit.fullThumbWidth) * (index*-1);
+                            thumb.children().eq(i).css({transform: 'translateX(' + move  + 'px)', width: settings.thumb.width});
+                        }
                     };
                     hidden = function (thumb, hidden_i) {
                         thumb.children().eq(hidden_i).css({'display': 'none', transform: ''});
@@ -504,25 +497,28 @@
                     _thumbnailStep(index, thumb, next, show, hidden);
                     break;
                 case '_listSliderStep':
-                    console.log('thumb');
                     thumb = $('.listSlider');
                     thumbOpit = listThumbOpit;
                     next = function (index, thumb) {
                         if(index == 1) {
-                            for(i = listThumbOpit.displayThumbNumber; i < (objectSize-1); i++) {
-                                currentIndex = parseInt(thumb.children().eq(i).css('transform').split(',')[5]),
-                                    move = (currentIndex - (100 * index) - 5 * index);
-                                thumb.children().eq(i).css({transform: "translate3d(5px," + move + "px, 0)"}).attr('data-sort', move);
+                            for(i = listThumbOpit.displayThumbNumber; i < (objectSize); i++) {
+                                step(thumb, i, index);
                             }
                         } else if(index == -1) {
-
+                            for(i = (objectSize-2); i > (objectSize-thumbOpit.maxThumb-1); i--) {
+                                step(thumb, i, index);
+                            }
                         }
-
+                        function step(thumb, i, index) {
+                            currentIndex = parseInt(thumb.children().eq(i).css('transform').split(',')[5]);
+                            move = (currentIndex - (100 * index) - 5 * index);
+                            thumb.children().eq(i).css({transform: "translate3d(5px," + move  + "px, 0)"});
+                        }
                     };
                     show = function (index, thumb, show_i) {
                         var show;
                         if (index == 1) {
-                            move = ((maxThumb - 1) * 100) + maxThumb * 5;
+                            move = ((thumbOpit.maxThumb - 1) * 100) + thumbOpit.maxThumb * 5;
                             show = thumb.children().first().clone();
                             thumb.children().last().after(show);
                             thumb.children().first().remove();
@@ -536,7 +532,7 @@
                         thumb.children().eq(show_i.index).css({
                             'display': 'block',
                             'transform': "translate3d(5px, " + move + "px, 0)"
-                        }).attr('data-sort', move);
+                        });
                     };
                     hidden = function (thumb, hidden_i) {
                         thumb.children().eq(hidden_i).css({display: 'none', transform: ''}).attr('data-sort', 'null');
@@ -560,7 +556,6 @@
                 hidden(thumb, hidden_i);
                 next(index, thumb);
                 show(index, thumb, show_i);
-
             }
             else if (index == -1) {
                 hidden_i = objectSize-1;
@@ -636,7 +631,7 @@
                         listSlider.children().eq(i).children('.description').before('<h3 class="title">' + title + '</h3>');
                     }
                 };
-            listThumbOpit = {displayThumbNumber: displayThumbNumber};
+            listThumbOpit = {displayThumbNumber: displayThumbNumber, maxThumb: maxThumb};
 
             for (var i = 0; i < objectSize; i++) {
                 addImage(i);
@@ -645,16 +640,16 @@
                 if (i < activeImageIndex) {
                     if (i <= activeImageIndex - displayThumbNumber - 1) {
                         var y = before * 100 + before * margin + 5;
-                        currentListSlider.css("transform", "translate3d(5px, " + y + "px, 0)").attr('data-sort', y);
+                        currentListSlider.css("transform", "translate3d(5px, " + y + "px, 0)");
                         afterActive--;
                         before++;
                     }
                     else {
-                        currentListSlider.css({'display': 'none'}).attr('data-sort', 'null');
+                        currentListSlider.css({'display': 'none'});
                     }
                 }
                 else if (i == activeImageIndex) {
-                    currentListSlider.css("transform", "translate3d(5px, 5px, 0)").attr('data-sort', 5);
+                    currentListSlider.css("transform", "translate3d(5px, 5px, 0)");
                     active++;
                 }
                 else if (i > activeImageIndex) {
