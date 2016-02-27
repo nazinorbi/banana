@@ -535,7 +535,7 @@
                         });
                     };
                     hidden = function (thumb, hidden_i) {
-                        thumb.children().eq(hidden_i).css({display: 'none', transform: ''}).attr('data-sort', 'null');
+                        thumb.children().eq(hidden_i).css({display: 'none', transform: ''});
                     };
                     _thumbnailStep(index, thumb, next, show, hidden);
                     break;
@@ -623,7 +623,7 @@
                         text = obj.eq(i).attr('text'),
                         title = obj.eq(i).attr('_title');
 
-                    listSlider.append('<div></div>');
+                    listSlider.append('<div class="listThumb">');
                     listSlider.children().eq(i).append(image);
                     listSlider.children().eq(i).append('<div class="description"><p class="listSliderText">' + text + '</p></div>');
 
@@ -655,12 +655,12 @@
                 else if (i > activeImageIndex) {
                     y = (active + 1) * margin + (active) * 100;
                     if (afterActive > 0 && active < maxThumb) {
-                        currentListSlider.css("transform", "translate3d(5px,+" + y + "px, 0)").attr('data-sort', y);
+                        currentListSlider.css("transform", "translate3d(5px,+" + y + "px, 0)");
                         afterActive--;
                         active++;
                     }
                     else {
-                        currentListSlider.css({'display': 'none'}).attr('data-sort', 'null');
+                        currentListSlider.css({'display': 'none'});
                     }
                 }
             }
@@ -669,7 +669,8 @@
 
         },
         _listSliderClickStep = function (clickedObj) {
-            var step = _round(clickedObj.attr('data-sort') / 100, 0, 'ROUND_DOWN');
+            var step = clickedObj.index()-listThumbOpit.displayThumbNumber;
+            console.log('foo');
 
             if (step !== 0) {
                 for (var n = 0; n < step; n++) {
@@ -776,7 +777,7 @@
             $(this).switchClass('active', 'inactive');
             $('.stop').switchClass('inactive', 'active');
         });
-        $('.listSlider').children().click(function () {
+        $('.listSlider').on('click', '.listThumb',function() {
             _listSliderClickStep($(this));
         });
     };
