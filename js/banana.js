@@ -11,7 +11,7 @@
      */
     var arrow, arrowR, arrowL, $active_image = 0, settings, title, obj,
         switches, bullet, $this, autoPlay = false, thumbName, lastImageIndex,
-        activeImageIndex, _options, parent, objectSize, listSlider, thumbOpit, listThumbOpit,
+        activeImageIndex, _options, parent, objectSize, listSlider, thumbOpit, listThumbOpit, sliderType, control,
 
     /*thumChose = {
      _listSliderStep: function(index) {_listSliderStep(index);},
@@ -19,7 +19,9 @@
      },*/
 
         _setParams = function (_settings, _obj) {
-            switches = _settings.switches;
+            switches = _settings.control;
+            sliderType = _settings.sliderType;
+            control = _settings.control;
             obj = _obj;
             settings = _settings.gallery;
             $this = obj.parent();
@@ -31,56 +33,69 @@
         },
         _start = function () {
             _galleryStart();
-
-            for (var key in switches) {
+            for( var key in sliderType) {
                 switch (key) {
-                    case 'arrow':
-                        if (switches.arrow) {
-                            _addArrow(obj);
-                        }
-                        break;
-                    case 'bullet':
-                        if (switches.bullet) {
-                            _addBullet(obj);
-                            bullet = $this.find('.' + settings.bullet).children();
-                        }
-                        break;
-                    case 'autoPlay':
-                        if (switches.autoPlay) {
-                            autoPlay = true;
-                            setInterval(_autoPlay, settings.speed);
-                        }
-                        break;
-                    case 'title':
-                        if (switches.title && !switches.addListSlider) {
-                            _addTitle();
-                        }
-                        break;
-                    case 'player':
-                        if (switches.player) {
-                            _addPlayer();
-                        }
-                        break;
                     case 'thumbnail':
-                        if (switches.thumbnail) {
+                        if (sliderType.thumbnail) {
                             _addThumbnail();
                             thumbName = "_thumbStep";
                         }
                         break;
                     case 'addVerticalThumbnail':
-                        if (switches.addVerticalThumbnail) {
+                        if (sliderType.addVerticalThumbnail) {
                             _addVerticalThumbnail();
                             thumbName = "_verticalThumbStep";
                         }
                         break;
                     case 'addListSlider':
-                        if (switches.addListSlider) {
+                        if (sliderType.addListSlider) {
                             _addListSlider();
                             thumbName = "_listSliderStep";
                         }
                         break;
+                    case 'fullWidthSlider':
+                        if(sliderType.fullWidthSlider) {
+                            _fullWidthSlider();
+                            thumbName = '_fullWidthSlider';
+                        break;
+                        }
                     default:
-                        //alert(key);
+                        if (sliderType.thumbnail) {
+                            _addThumbnail();
+                            thumbName = "_thumbStep";
+                        }
+                        break;
+                }
+            }
+
+            for (var key in switches) {
+                switch (key) {
+                    case 'arrow':
+                        if (control.arrow) {
+                            _addArrow(obj);
+                        }
+                        break;
+                    case 'bullet':
+                        if (control.bullet) {
+                            _addBullet(obj);
+                            bullet = $this.find('.' + settings.bullet).children();
+                        }
+                        break;
+                    case 'autoPlay':
+                        if (control.autoPlay) {
+                            autoPlay = true;
+                            setInterval(_autoPlay, settings.speed);
+                        }
+                        break;
+                    case 'title':
+                        if (control.title && !control.addListSlider) {
+                            _addTitle();
+                        }
+                        break;
+                    case 'player':
+                        if (control.player) {
+                            _addPlayer();
+                        }
                         break;
                 }
             }
@@ -88,9 +103,9 @@
         _galleryStart = function () {
             var img = obj.eq(activeImageIndex).children().clone(),
                 origImageSize, imageScale;
+            console.log(img);
 
             $("<img>").attr("src", $(img).attr("src")).load(function () {
-                console.log(this.width);
                 origImageSize = {_width: this.width, _height: this.height};
                 switch (thumbName) {
                     case '_thumbStep':
@@ -99,8 +114,22 @@
                     case '_listSliderStep':
                         _widthOriginalSize();
                         break;
+                    case '_fullWidthSlider':
+                        _fullWidthSize();
+                        break;
                 }
             });
+
+            function _fullWidthSize() {
+                console.log('foo:'+ $(document).width());
+                switch(settings.fullWidthSlider.width) {
+                    case 'window':
+                        $this.css({ 'min-width': $(document).width() });
+                    break;
+                    case 'gallery':
+                        $this.css({width: settings.galleryWidth});
+                }
+            }
 
             function _widthOriginalSize() {
                 imageScale = origImageSize._width / origImageSize._height;
@@ -114,7 +143,7 @@
                     });
 
                     if (index == activeImageIndex) {
-                        $('.gallery').css({
+                        $this.css({
                             'height': settings.galleryHeight + 'px',
                             'width': _round(settings.galleryHeight * imageScale)
                         });
@@ -206,7 +235,7 @@
                 nextIndex = currentIndex + (1 * index),
                 bulletIndex = (index == -1) ? -2 : 0;
 
-            $('.gallery').width(obj.eq(nextIndex).width());
+            $this('.gallery').width(obj.eq(nextIndex).width());
 
             _thumbnailSwitch(index);
             _arrowStep();
@@ -235,7 +264,7 @@
             var bullet = '<object class="' + settings.bullet + '"  >',
                 className = null;
 
-            for (var i = 1; i <= obj.length; i++) {
+            for (var i = 1; i <= objectSize; i++) {
                 (i - 1 == activeImageIndex) ? className = 'bulletActive' : className = 'bulletInactive';
                 bullet += '<div class= "bullet ' + className + '" ><div class="inner"></div></div>';
             }
@@ -243,9 +272,11 @@
             bullet += '</object>';
             $this.append(bullet);
             var settingsBullet = $('.' + settings.bullet),
-                bulletLeft = $this.width() / 2 - (settingsBullet.width()) / 2,
-                bulletBottom = $this.height() * 0.1;
-            settingsBullet.css({'left': bulletLeft, 'bottom': bulletBottom});
+                bulletLeft = obj.width() / 2 - (settingsBullet.width()) / 2,
+                bulletBottom = obj.height() * 0.9;
+            settingsBullet.css({transform: 'translate3d('+bulletLeft+'px, '+bulletBottom+'px, 0)'});
+            //settingsBullet.css({'left': bulletLeft, 'bottom': bulletBottom});
+            console.log( 'bullet: '+obj.width());
         },
         _autoPlay = function () {
             if (autoPlay) {
@@ -694,6 +725,23 @@
             _endIntoStart(thumb);
             }
         },
+        _fullWidthSlider = function() {
+            $this.switchClass('gallery', 'fullWidthSlider');
+            var ratio = $(document).width();
+
+
+            obj.each(function(index) {
+                if(settings.fullThumbWidth.width == 'window') {
+                    var ratio = $(document).width()/$(this).children().attr('src', 'images/sl_'+index+'.jpg').width();
+                }
+                $(this).children().attr('src', 'images/sl_'+index+'.jpg')
+                    .css({width: '1200px'});
+                if(index == activeImageIndex) {
+                    $this.css({ width: })
+                }
+            });
+            obj = $('.fullWidthSlider');
+        },
         _round = function (value, precision, mode) {
 
             var m, f, isHalf, sgn; // helper variables
@@ -731,7 +779,8 @@
                     break;
             }
             return (isHalf ? value : Math.round(value)) / m;
-        };
+        },
+
 
     /*
      * Public methods
@@ -805,18 +854,26 @@
                 playerPosition: {
                     position: 'over',
                     corner: 'bottom-right'
+                },
+                fullWidthSlider: {
+                    before: true,
+                    after: false,
+                    width: 'window'
                 }
             },
-            switches: {
+            control: {
                 imageNumber: true,
                 title: true,
                 bullet: true,
                 autoPlay: false,
                 player: true,
-                arrow: true,
+                arrow: true
+            },
+            sliderType: {
                 thumbnail: false,
                 addVerticalThumbnail: false,
-                addListSlider: true
+                addListSlider: false,
+                fullWidthSlider: true
             }
         },
         functionParamList = {
