@@ -730,17 +730,18 @@
             var ratio = $(document).width();
 
 
-            obj.each(function(index) {
-                if(settings.fullThumbWidth.width == 'window') {
-                    var ratio = $(document).width()/$(this).children().attr('src', 'images/sl_'+index+'.jpg').width();
-                }
-                $(this).children().attr('src', 'images/sl_'+index+'.jpg')
-                    .css({width: '1200px'});
-                if(index == activeImageIndex) {
-                    $this.css({ width: })
-                }
+            obj.each(function (index) {
+                /* if(settings.fullThumbWidth.width == 'window') {
+                 var ratio = $(document).width()/$(this).children().attr('src', 'images/sl_'+index+'.jpg').width();
+                 }*/
+                $(this).children().attr('src', 'images/sl_' + index + '.jpg')
+
             });
             obj = $('.fullWidthSlider');
+
+            var image = obj.children().eq(8).children().attr('src');
+            _resize(image, 1500);
+
         },
         _round = function (value, precision, mode) {
 
@@ -780,6 +781,44 @@
             }
             return (isHalf ? value : Math.round(value)) / m;
         },
+        _resize = function (src, size) {
+            var img,
+                mainCanvas;
+
+            startResize(src);
+
+            function startResize(src) {
+                $.when(
+                    createImage(src)
+                ).then(resize, function () {console.log('error')});
+            }
+
+            function createImage(src) {
+                var deferred = $.Deferred();
+
+                img = new Image();
+
+                img.onload = function() {
+                    deferred.resolve(img);
+                };
+                img.src = src;
+                return deferred.promise();
+            }
+
+            function resize(image) {
+                mainCanvas = document.createElement("canvas");
+                mainCanvas.width = 1535;
+                mainCanvas.height = 308;
+                var ctx = mainCanvas.getContext("2d");
+                ctx.drawImage(image, 0, 0, 1024, 300, 0, 0, mainCanvas.width, mainCanvas.height);
+                size = parseInt(1500, 10);
+                console.log('size: '+size);
+
+                return mainCanvas.toDataURL("image/jpeg");
+
+                //obj.children().eq(8).children().attr('src', mainCanvas.toDataURL("image/jpeg"));
+            }
+        };
 
 
     /*
