@@ -24,6 +24,7 @@
             control = _settings.control;
             obj = _obj;
             settings = _settings.gallery;
+            thumbName = _settings.gallery.thumbName;
             $this = obj.parent();
             lastImageIndex = obj.length - 1;
             objectSize = obj.size();
@@ -44,25 +45,21 @@
                     case 'addVerticalThumbnail':
                         if (sliderType.addVerticalThumbnail) {
                             _addVerticalThumbnail();
-                            thumbName = "_verticalThumbStep";
                         }
                         break;
                     case 'addListSlider':
                         if (sliderType.addListSlider) {
                             _addListSlider();
-                            thumbName = "_listSliderStep";
                         }
                         break;
                     case 'fullWidthSlider':
                         if(sliderType.fullWidthSlider) {
                             _fullWidthSlider();
-                            thumbName = '_fullWidthSlider';
                         break;
                         }
                     default:
                         if (sliderType.thumbnail) {
                             _addThumbnail();
-                            thumbName = "_thumbStep";
                         }
                         break;
                 }
@@ -88,7 +85,7 @@
                         }
                         break;
                     case 'title':
-                        if (control.title && !control.addListSlider) {
+                        if (control.title && !sliderType.addListSlider && !sliderType.fullWidthSlider) {
                             _addTitle();
                         }
                         break;
@@ -103,7 +100,6 @@
         _galleryStart = function () {
             var img = obj.eq(activeImageIndex).children().clone(),
                 origImageSize, imageScale;
-            console.log(img);
 
             $("<img>").attr("src", $(img).attr("src")).load(function () {
                 origImageSize = {_width: this.width, _height: this.height};
@@ -121,13 +117,13 @@
             });
 
             function _fullWidthSize() {
-                console.log('foo:'+ $(document).width());
+                console.log('foo');
                 switch(settings.fullWidthSlider.width) {
                     case 'window':
-                        $this.css({ 'min-width': $(document).width() });
+                        $this.css({ 'width': $(document).width(), height: settings.fullWidthSlider.height });
                     break;
                     case 'gallery':
-                        $this.css({width: settings.galleryWidth});
+                        $this.css({width: settings.galleryWidth, height: settings.fullWidthSlider.height });
                 }
             }
 
@@ -179,21 +175,21 @@
                 case 'top':
                     break;
                 case 'bottom':
-                    verticalPos = -154;
+                    verticalPos = 0;
                     break;
             }
             switch (settings.title.position) {
                 case 'outside':
-                    $this.last().append('<div class="title outside"><p></p>' + title + '</div>');
+                    $this.last().append('<div class="title outside"><p class="titleText">' + title + '<div class="titleBac"></div></p></div>');
                     break;
                 case 'inside':
-                    $this.last().append('<div class="title inside"><p></p>' + title + '</div>');
+                    $this.last().append('<div class="title inside"><p class="titleText">' + title + '<div class="titleBac"></div></p></div>');
                     break;
                 case 'over':
-                    $this.last().append('<div class="title over"><p></p>' + title + '</div>');
+                    $this.last().append('<div class="title over"><p class="titleText">' + title + '<div class="titleBac"></div></p></div>');
                     break;
                 default:
-                    $this.last().append('<div class="title outside"><p></p>' + title + '</div>');
+                    $this.last().append('<div class="title outside"><p class="titleText">' + title + '<p class="titleBac"></p></div></div>');
                     break;
             }
             $('.title').css({'width': $this.width(), transform: "translateY(" + verticalPos + "px)"});
@@ -261,7 +257,7 @@
             }
         },
         _addBullet = function (obj) {
-            var bullet = '<object class="' + settings.bullet + '"  >',
+            var bullet = '<div class="' + settings.bullet + '"  >',
                 className = null;
 
             for (var i = 1; i <= objectSize; i++) {
@@ -269,14 +265,12 @@
                 bullet += '<div class= "bullet ' + className + '" ><div class="inner"></div></div>';
             }
 
-            bullet += '</object>';
+            bullet += '</div>';
             $this.append(bullet);
             var settingsBullet = $('.' + settings.bullet),
-                bulletLeft = obj.width() / 2 - (settingsBullet.width()) / 2,
-                bulletBottom = obj.height() * 0.9;
+                bulletLeft = $this.width() / 2 + (settingsBullet.width()) / 2,
+                bulletBottom = ($this.height() * 0.15) * -1;
             settingsBullet.css({transform: 'translate3d('+bulletLeft+'px, '+bulletBottom+'px, 0)'});
-            //settingsBullet.css({'left': bulletLeft, 'bottom': bulletBottom});
-            console.log( 'bullet: '+obj.width());
         },
         _autoPlay = function () {
             if (autoPlay) {
@@ -726,22 +720,12 @@
             }
         },
         _fullWidthSlider = function() {
-            $this.switchClass('gallery', 'fullWidthSlider');
-            var ratio = $(document).width();
-
-
-            obj.each(function (index) {
-                /* if(settings.fullThumbWidth.width == 'window') {
-                 var ratio = $(document).width()/$(this).children().attr('src', 'images/sl_'+index+'.jpg').width();
-                 }*/
-                $(this).children().attr('src', 'images/sl_' + index + '.jpg')
-
-            });
-            obj = $('.fullWidthSlider');
-
-            var image = obj.children().eq(8).children().attr('src');
-            _resize(image, 1500);
-
+           obj.each(function (index) {
+               if(settings.fullWidthSlider.width == 'window') {
+                   var src = $(this).children().attr('src');
+                   _resize(src, index);
+               }
+           });
         },
         _round = function (value, precision, mode) {
 
@@ -781,9 +765,8 @@
             }
             return (isHalf ? value : Math.round(value)) / m;
         },
-        _resize = function (src, size) {
-            var img,
-                mainCanvas;
+        _resize = function (src, i) {
+            var img, mainCanvas, origImg = {};
 
             startResize(src);
 
@@ -808,15 +791,18 @@
             function resize(image) {
                 mainCanvas = document.createElement("canvas");
                 mainCanvas.width = 1535;
-                mainCanvas.height = 308;
+                mainCanvas.height = 300;
+                origImg._width = obj.eq(i).children().width();
+                origImg._height = obj.eq(i).children().height();
+
                 var ctx = mainCanvas.getContext("2d");
-                ctx.drawImage(image, 0, 0, 1024, 300, 0, 0, mainCanvas.width, mainCanvas.height);
-                size = parseInt(1500, 10);
-                console.log('size: '+size);
+                ctx.drawImage(image, 0, 0, origImg._width, origImg._height, 0, 0, mainCanvas.width, mainCanvas.height);
 
-                return mainCanvas.toDataURL("image/jpeg");
+                obj.eq(i).children().attr('src', mainCanvas.toDataURL("image/jpeg"));
+            }
 
-                //obj.children().eq(8).children().attr('src', mainCanvas.toDataURL("image/jpeg"));
+            function sizeDeBug(i, size) {
+
             }
         };
 
@@ -874,7 +860,7 @@
             gallery: {
                  activeImageIndex: function() {
                     //return  Math.floor((Math.random() * (objectSize-1)) +1);
-                     return 8;
+                     return 4;
                  },
                // activeImageIndex: 4,
                 galleryHeight: 650,
@@ -895,6 +881,7 @@
                     corner: 'bottom-right'
                 },
                 fullWidthSlider: {
+                    height: 300,
                     before: true,
                     after: false,
                     width: 'window'
@@ -946,7 +933,8 @@
                 arrow: 'bolean',
                 thumbnail: 'bolean',
                 addVerticalThumbnail: 'bolean',
-                addListSlider: 'bolean'
+                addListSlider: 'bolean',
+                fullWidthSlider: 'bolean'
             }
         },
         _create_deBug = function (opitions, attrParams) {
