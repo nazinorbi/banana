@@ -101,6 +101,7 @@
         _galleryStart = function () {
             switch(thumbName) {
                 case '_fullWidthSlider':
+                    objSize.width = $(document).width();
                     _fullWidthSize();
                     break;
                 default:
@@ -122,11 +123,13 @@
             }
 
             function _fullWidthSize() {
-                var fullWidth = $(document).width();
+                console.log(objSize.width);
                 switch(settings.fullWidthSlider.width) {
                     case 'window':
-                        $this.width(fullWidth).height(settings.fullWidthSlider.height);
+                        $this.width(objSize.width).height(settings.fullWidthSlider.height);
                         objSize.height = settings.fullWidthSlider.height;
+                        objSize.width = $(document).width();
+                        $this.parent().css({'justify-content': '', display: 'block', width: '' });
                     break;
                     case 'gallery':
                         $this.css({width: settings.galleryWidth, height: settings.fullWidthSlider.height });
@@ -216,7 +219,7 @@
         },
         _arrowStep = function () {
             var y = (objSize.height / 2 ) * -1,
-                x = $(document).width() - arrow.arrowR.width();
+                x = ($(document).width()) - arrow.arrowR.width();
 
             arrow.arrowR.css({"transform": "translate3d("+x+"px," + y + "px, 0)"});
             arrow.arrowL.css({"transform": "translate3d(0," + y + "px, 0) rotate(180deg)"});
@@ -243,7 +246,7 @@
             bullet.filter('.bulletActive').switchClass('bulletActive', 'bulletInactive');
             bullet.eq(currentIndex + bulletIndex + (index * index)).removeClass('bulletInactive').addClass('bulletActive');
 
-            if (switches.title) {
+            if (control.title) {
                 $this.find('.' + settings.title.position + ' p').text($this.find('.active').attr('text'));
             }
             currentIndex = currentIndex + (1 * index);
@@ -725,8 +728,9 @@
         },
         _fullWidthSlider = function(index) {
                if(settings.fullWidthSlider.width == 'window') {
-                   var src = obj.eq(index).children().attr('src');
-                   _resize(src, index);
+                   var src = obj.eq(index).children().attr('src'),
+                       width =  $(document).width();
+                   _resize(src, index, width);
                }
         },
         _round = function (value, precision, mode) {
@@ -767,7 +771,7 @@
             }
             return (isHalf ? value : Math.round(value)) / m;
         },
-        _resize = function (src, i) {
+        _resize = function (src, i, width) {
             var img, mainCanvas, origImg = {};
 
             startResize(src);
@@ -792,7 +796,7 @@
 
             function resize(image) {
                 mainCanvas = document.createElement("canvas");
-                mainCanvas.width = 1535;
+                mainCanvas.width = width;
                 mainCanvas.height = 300;
                 origImg._width = obj.eq(i).children().width();
                 origImg._height = obj.eq(i).children().height();
