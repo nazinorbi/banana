@@ -10,8 +10,9 @@
      * Private methods
      */
     var arrow, arrowR, arrowL, $active_image = 0, settings, title, obj,
-        switches, bullet, $this, autoPlay = false, thumbName, lastImageIndex,
-        activeImageIndex, _options, parent, objectSize, listSlider, thumbOpit, listThumbOpit, sliderType, control,
+        bullet, $this, autoPlay = false, thumbName, lastImageIndex,
+        activeImageIndex, _options, parent, objectSize, listSlider, thumbOpit,
+        listThumbOpit, sliderType, control, fullWidthCounter = 0, objSize = {},
 
     /*thumChose = {
      _listSliderStep: function(index) {_listSliderStep(index);},
@@ -19,7 +20,6 @@
      },*/
 
         _setParams = function (_settings, _obj) {
-            switches = _settings.control;
             sliderType = _settings.sliderType;
             control = _settings.control;
             obj = _obj;
@@ -28,12 +28,13 @@
             $this = obj.parent();
             lastImageIndex = obj.length - 1;
             objectSize = obj.size();
-            activeImageIndex = defaults.gallery.activeImageIndex();
+            activeImageIndex = _settings.gallery.activeImageIndex();
 
             obj.filter('.image').eq(activeImageIndex).addClass('active');
         },
         _start = function () {
             _galleryStart();
+
             for( var key in sliderType) {
                 switch (key) {
                     case 'thumbnail':
@@ -54,9 +55,9 @@
                         break;
                     case 'fullWidthSlider':
                         if(sliderType.fullWidthSlider) {
-                            _fullWidthSlider();
-                        break;
+                            _fullWidthSlider(activeImageIndex);
                         }
+                        break;
                     default:
                         if (sliderType.thumbnail) {
                             _addThumbnail();
@@ -65,7 +66,7 @@
                 }
             }
 
-            for (var key in switches) {
+            for (var key in control) {
                 switch (key) {
                     case 'arrow':
                         if (control.arrow) {
@@ -98,29 +99,34 @@
             }
         },
         _galleryStart = function () {
-            var img = obj.eq(activeImageIndex).children().clone(),
-                origImageSize, imageScale;
+            switch(thumbName) {
+                case '_fullWidthSlider':
+                    _fullWidthSize();
+                    break;
+                default:
+                    var img = obj.eq(activeImageIndex).children().clone(),
+                        origImageSize, imageScale;
 
-            $("<img>").attr("src", $(img).attr("src")).load(function () {
-                origImageSize = {_width: this.width, _height: this.height};
-                switch (thumbName) {
-                    case '_thumbStep':
-                        _heightOriginalSize();
-                        break;
-                    case '_listSliderStep':
-                        _widthOriginalSize();
-                        break;
-                    case '_fullWidthSlider':
-                        _fullWidthSize();
-                        break;
-                }
-            });
+                    $("<img>").attr("src", $(img).attr("src")).load(function () {
+                        origImageSize = {_width: this.width, _height: this.height};
+                        switch (thumbName) {
+                            case '_thumbStep':
+                                _heightOriginalSize();
+                                break;
+                            case '_listSlider':
+                                _widthOriginalSize();
+                                break;
+                        }
+                    });
+                break;
+            }
 
             function _fullWidthSize() {
-                console.log('foo');
+                var fullWidth = $(document).width();
                 switch(settings.fullWidthSlider.width) {
                     case 'window':
-                        $this.css({ 'width': $(document).width(), height: settings.fullWidthSlider.height });
+                        $this.width(fullWidth).height(settings.fullWidthSlider.height);
+                        objSize.height = settings.fullWidthSlider.height;
                     break;
                     case 'gallery':
                         $this.css({width: settings.galleryWidth, height: settings.fullWidthSlider.height });
@@ -209,21 +215,11 @@
             _arrowStep()
         },
         _arrowStep = function () {
-            var y = (defaults.gallery.galleryHeight / 2 + arrow.arrowR.height() / 2 ) * -1,
-                x = $this.width(),
-                arrowL_y = y - arrow.arrowR.height(), arrowR_x,
-                browserObjAgent = navigator.userAgent.toLowerCase();
+            var y = (objSize.height / 2 ) * -1,
+                x = $(document).width() - arrow.arrowR.width();
 
-            // console.log($('.gallery').get(0).scrollWidth);
-            // console.log( $('.gallery'));
-
-            if (browserObjAgent.indexOf("chrome") > -1) {
-                arrowR_x = x - arrow.arrowR.width();
-            } else if (browserObjAgent.indexOf('firefox') > -1) {
-                arrowR_x = x;
-            }
-            arrow.arrowR.css({"transform": "translate3d(0," + arrowL_y + "px, 0)"});
-            arrow.arrowL.css({"transform": "translate3d(0," + arrowL_y + "px, 0) rotate(180deg)"});
+            arrow.arrowR.css({"transform": "translate3d("+x+"px," + y + "px, 0)"});
+            arrow.arrowL.css({"transform": "translate3d(0," + y + "px, 0) rotate(180deg)"});
         },
         _step = function (index) {
             var arrowL = $this.find('.arrowL'),
@@ -231,9 +227,14 @@
                 nextIndex = currentIndex + (1 * index),
                 bulletIndex = (index == -1) ? -2 : 0;
 
-            $this('.gallery').width(obj.eq(nextIndex).width());
 
-            _thumbnailSwitch(index);
+            if(thumbName == '_fullWidthSlider' && fullWidthCounter < objectSize) {
+                _thumbnailSwitch(index, nextIndex);
+                fullWidthCounter++;
+            } else {
+                _thumbnailSwitch(index, nextIndex);
+            }
+
             _arrowStep();
 
             obj.removeClass('active').addClass('inactive');
@@ -268,7 +269,7 @@
             bullet += '</div>';
             $this.append(bullet);
             var settingsBullet = $('.' + settings.bullet),
-                bulletLeft = $this.width() / 2 + (settingsBullet.width()) / 2,
+                bulletLeft = $(document).width() / 2 - (settingsBullet.width()) / 2,
                 bulletBottom = ($this.height() * 0.15) * -1;
             settingsBullet.css({transform: 'translate3d('+bulletLeft+'px, '+bulletBottom+'px, 0)'});
         },
@@ -478,7 +479,7 @@
                 verticalThumb.children().eq(thumbIndex - 1).children('div').eq(1).addClass('ThumbActive');
             }
         },
-        _thumbnailSwitch = function (index) {
+        _thumbnailSwitch = function (index, nextIndex) {
             var move, i, next, hidden, show, thumb, currentIndex;
             switch (thumbName) {
                 case '_thumbStep':
@@ -566,6 +567,9 @@
                     break;
                 case '_verticalThumbStep':
                     _verticalThumbStep(index);
+                    break;
+                case '_fullWidthSlider':
+                    _fullWidthSlider(nextIndex);
                     break;
                 default:
                     break;
@@ -719,13 +723,11 @@
             _endIntoStart(thumb);
             }
         },
-        _fullWidthSlider = function() {
-           obj.each(function (index) {
+        _fullWidthSlider = function(index) {
                if(settings.fullWidthSlider.width == 'window') {
-                   var src = $(this).children().attr('src');
+                   var src = obj.eq(index).children().attr('src');
                    _resize(src, index);
                }
-           });
         },
         _round = function (value, precision, mode) {
 
@@ -858,6 +860,7 @@
 
     var defaults = {
             gallery: {
+                thumbName: '_listSlider',
                  activeImageIndex: function() {
                     //return  Math.floor((Math.random() * (objectSize-1)) +1);
                      return 4;
