@@ -98,28 +98,32 @@
                 }
             }
         },
-        _galleryStart = function () {
-            switch(thumbName) {
+        _galleryStart = function() {
+            var origImageSize, imageScale;
+
+            switch (thumbName) {
                 case '_fullWidthSlider':
                     objSize.width = $(document).width();
+                    objSize.height = settings.fullWidthSlider.height;
                     _fullWidthSize();
                     break;
-                default:
-                    var img = obj.eq(activeImageIndex).children().clone(),
-                        origImageSize, imageScale;
+                case '_thumbStep':
+                    _heightOriginalSize();
+                    break;
+                case '_listSlider':
+                    var img = obj.eq(activeImageIndex).children().clone();
+                    loadImg(img);
+                    objSize.width = settings.galleryWidth;
+                    objSize.height = settings.galleryHeight;
+                    //_widthOriginalSize();
+                    break;
+            }
 
-                    $("<img>").attr("src", $(img).attr("src")).load(function () {
-                        origImageSize = {_width: this.width, _height: this.height};
-                        switch (thumbName) {
-                            case '_thumbStep':
-                                _heightOriginalSize();
-                                break;
-                            case '_listSlider':
-                                _widthOriginalSize();
-                                break;
-                        }
-                    });
-                break;
+            function loadImg(img) {
+                $("<img>").attr("src", $(img).attr("src")).load(function () {
+                    origImageSize = {_width: this.width, _height: this.height};
+                    _widthOriginalSize();
+                });
             }
 
             function _fullWidthSize() {
@@ -127,12 +131,11 @@
                 switch(settings.fullWidthSlider.width) {
                     case 'window':
                         $this.width(objSize.width).height(settings.fullWidthSlider.height);
-                        objSize.height = settings.fullWidthSlider.height;
-                        objSize.width = $(document).width();
                         $this.parent().css({'justify-content': '', display: 'block', width: '' });
                     break;
                     case 'gallery':
                         $this.css({width: settings.galleryWidth, height: settings.fullWidthSlider.height });
+                    break;
                 }
             }
 
@@ -140,7 +143,7 @@
                 imageScale = origImageSize._width / origImageSize._height;
 
                 obj.each(function (index) {
-                    var _width = settings.galleryHeight * $(this).width() / $(this).height();
+                    var _width = settings.galleryHeight * ($(this).width() / $(this).height());
                     $(this).css({
                         height: settings.galleryHeight + 'px',
                         width: _round(_width) + 'px',
@@ -168,7 +171,7 @@
                     });
 
                     if (index == activeImageIndex) {
-                        $('.gallery').css({
+                        $this.css({
                             'width': defaults.gallery.galleryWidth + 'px',
                             'height': _round(defaults.gallery.galleryWidth * imageScale)
                         });
@@ -219,7 +222,7 @@
         },
         _arrowStep = function () {
             var y = (objSize.height / 2 ) * -1,
-                x = ($(document).width()) - arrow.arrowR.width();
+                x = objSize.width - arrow.arrowR.width();
 
             arrow.arrowR.css({"transform": "translate3d("+x+"px," + y + "px, 0)"});
             arrow.arrowL.css({"transform": "translate3d(0," + y + "px, 0) rotate(180deg)"});
@@ -261,6 +264,7 @@
             }
         },
         _addBullet = function (obj) {
+            console.log(objSize.width);
             var bullet = '<div class="' + settings.bullet + '"  >',
                 className = null;
 
@@ -272,7 +276,7 @@
             bullet += '</div>';
             $this.append(bullet);
             var settingsBullet = $('.' + settings.bullet),
-                bulletLeft = $(document).width() / 2 - (settingsBullet.width()) / 2,
+                bulletLeft = objSize.width / 2 - (settingsBullet.width()) / 2,
                 bulletBottom = ($this.height() * 0.15) * -1;
             settingsBullet.css({transform: 'translate3d('+bulletLeft+'px, '+bulletBottom+'px, 0)'});
         },
@@ -525,7 +529,8 @@
                     };
                     _thumbnailStep(index, thumb, next, show, hidden);
                     break;
-                case '_listSliderStep':
+                case '_listSlider':
+                    console.log('foo');
                     thumb = $('.listSlider');
                     thumbOpit = listThumbOpit;
                     next = function (index, thumb) {
@@ -697,7 +702,7 @@
                 }
             }
             _addImageNumber(listSlider);
-            _startIntoEnd(listSlider);
+            _endIntoStart(listSlider);
 
         },
         _listSliderClickStep = function (clickedObj) {
