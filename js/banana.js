@@ -1,6 +1,6 @@
 /**
  * Created by nazi on 2015.10.06..
- * version dev v0.2.3
+ * version dev v0.2.4
  */
 
 ;
@@ -9,15 +9,8 @@
     /*
      * Private methods
      */
-    var arrow, arrowR, arrowL, $active_image = 0, settings, title, obj,
-        bullet, $this, autoPlay = false, thumbName, lastImageIndex,
-        activeImageIndex, _options, parent, objectSize, listSlider, thumbOpit,
-        listThumbOpit, sliderType, control, fullWidthCounter = 0, objSize = {},
-
-    /*thumChose = {
-     _listSliderStep: function(index) {_listSliderStep(index);},
-     _thumbStep: function(index) {_thumbStep(index);}
-     },*/
+    var $active_image = 0, settings, obj, $this, thumbName, activeImageIndex, parent,
+        objectSize, listSlider, thumbOpit, listThumbOpit, sliderType, control, objSize = {},
 
         _setParams = function (_settings, _obj) {
             sliderType = _settings.sliderType;
@@ -26,7 +19,6 @@
             settings = _settings.gallery;
             thumbName = _settings.gallery.thumbName;
             $this = obj.parent();
-            lastImageIndex = obj.length - 1;
             objectSize = obj.size();
             activeImageIndex = _settings.gallery.activeImageIndex();
 
@@ -81,7 +73,7 @@
                         break;
                     case 'autoPlay':
                         if (control.autoPlay) {
-                            autoPlay = true;
+                            objSize.autoPlay = true;
                             setInterval(_autoPlay, settings.speed);
                         }
                         break;
@@ -127,7 +119,6 @@
             }
 
             function _fullWidthSize() {
-                console.log(objSize.width);
                 switch(settings.fullWidthSlider.width) {
                     case 'window':
                         $this.width(objSize.width).height(settings.fullWidthSlider.height);
@@ -217,10 +208,10 @@
                 arrowR = '<div class="arrow arrowR"><div class="arrowInsideR">X</div></div>';
 
             obj.last().after(arrowR, arrowL);
-            arrow = {arrowR: $('.arrowR'), arrowL: $('.arrowL')};
-            _arrowStep()
+            var arrow = {arrowR: $('.arrowR'), arrowL: $('.arrowL')};
+            _arrowStep(arrow)
         },
-        _arrowStep = function () {
+        _arrowStep = function (arrow) {
             var y = (objSize.height / 2 ) * -1,
                 x = objSize.width - arrow.arrowR.width();
 
@@ -228,20 +219,22 @@
             arrow.arrowL.css({"transform": "translate3d(0," + y + "px, 0) rotate(180deg)"});
         },
         _step = function (index) {
-            var arrowL = $this.find('.arrowL'),
+            var arrow = {arrowR:$this.find('.arrowR'), arrowL:$this.find('.arrowL')},
                 currentIndex = obj.filter('.active').index(),
                 nextIndex = currentIndex + (1 * index),
                 bulletIndex = (index == -1) ? -2 : 0;
 
+            objSize.fullWidthCounter = 0;
 
-            if(thumbName == '_fullWidthSlider' && fullWidthCounter < objectSize) {
+
+            if(thumbName == '_fullWidthSlider' && objSize.fullWidthCounter < objectSize) {
                 _thumbnailSwitch(index, nextIndex);
-                fullWidthCounter++;
+                objSize.fullWidthCounter++;
             } else {
                 _thumbnailSwitch(index, nextIndex);
             }
 
-            _arrowStep();
+            _arrowStep(arrow);
 
             obj.removeClass('active').addClass('inactive');
             $active_image = obj.eq(nextIndex).removeClass('inactive').addClass('active');
@@ -263,7 +256,7 @@
                 currentIndex = 0;
             }
         },
-        _addBullet = function (obj) {
+        _addBullet = function() {
             console.log(objSize.width);
             var bullet = '<div class="' + settings.bullet + '"  >',
                 className = null;
@@ -280,8 +273,8 @@
                 bulletBottom = ($this.height() * 0.15) * -1;
             settingsBullet.css({transform: 'translate3d('+bulletLeft+'px, '+bulletBottom+'px, 0)'});
         },
-        _autoPlay = function () {
-            if (autoPlay) {
+        _autoPlay = function() {
+            if (objSize.autoPlay) {
                 var index = 0;
                 _step(index + 1);
             }
@@ -530,8 +523,7 @@
                     _thumbnailStep(index, thumb, next, show, hidden);
                     break;
                 case '_listSlider':
-                    console.log('foo');
-                    thumb = $('.listSlider');
+                    thumb = $('.listSlider');;
                     thumbOpit = listThumbOpit;
                     next = function (index, thumb) {
                         if(index == 1) {
@@ -668,7 +660,8 @@
                         listSlider.children().eq(i).children('.description').before('<h3 class="title">' + title + '</h3>');
                     }
                 };
-            listThumbOpit = {displayThumbNumber: displayThumbNumber, maxThumb: maxThumb};
+
+            listThumbOpit =  {displayThumbNumber: displayThumbNumber, maxThumb: maxThumb};
 
             for (var i = 0; i < objectSize; i++) {
                 addImage(i);
@@ -707,7 +700,6 @@
         },
         _listSliderClickStep = function (clickedObj) {
             var step = clickedObj.index()-listThumbOpit.displayThumbNumber;
-            console.log('foo');
 
             if (step !== 0) {
                 for (var n = 0; n < step; n++) {
@@ -823,11 +815,9 @@
      */
 
     $.fn.banana = function (options) {
-        var obj = $(this).children().filter('.image');
+        var obj = $(this).children().filter('.image'),
+            _opitions = _create_deBug(options, attrParams);
 
-        _options = options;
-
-        _create_deBug(_options, attrParams);
         _setParams($.extend(true, defaults, _options), obj);
 
         _start();
@@ -841,11 +831,11 @@
             }
         });
 
-        arrow.arrowL.click(function () {
+        $('.arrowL').click(function () {
             _step(-1);
         });
 
-        arrow.arrowR.click(function () {
+        $('.arrowR').click(function () {
             _step(1);
         });
 
@@ -951,6 +941,7 @@
         },
         _create_deBug = function (opitions, attrParams) {
             $.each(opitions, function (key, value) {
+                var _opitions = {};
                 if (typeof value == "object") {
                     if (key in attrParams) {
                         parent = key;
@@ -973,6 +964,7 @@
                         }
                     }
                 }
+                return _opitions;
             });
 
             function _check(value, attParam) {
