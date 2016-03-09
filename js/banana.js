@@ -815,10 +815,10 @@
      */
 
     $.fn.banana = function (options) {
-        var obj = $(this).children().filter('.image'),
-            _opitions = _create_deBug(options, attrParams);
+        var obj = $(this).children().filter('.image');
+           // _opitions = _create_deBug(options, attrParams);
 
-        _setParams($.extend(true, defaults, _options), obj);
+        _setParams($.extend(true, defaults, options), obj);
 
         _start();
 
@@ -956,7 +956,7 @@
                         }
                         else if (key == 'speed') {
                             if (!_minMaxChek(value, attrParams[key])) {
-                                _options.gallery[key] = defaults.gallery[key];
+                                _opitions.gallery[key] = defaults.gallery[key];
                             }
                         }
                         else if (!_check(value, attrParams[key])) {
