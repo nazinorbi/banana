@@ -10,10 +10,9 @@
      * Private methods
      */
     var $active_image = 0, settings, obj, $this, thumbName, activeImageIndex, parent,
-        objectSize, listSlider, thumbOpit, listThumbOpit, sliderType, control, objSize = {},
+        objectSize, listSlider, thumbOpit, listThumbOpit, control, objSize = {},
 
         _setParams = function (_settings, _obj) {
-            sliderType = _settings.sliderType;
             control = _settings.control;
             obj = _obj;
             settings = _settings.gallery;
@@ -29,20 +28,19 @@
 
                 switch (thumbName) {
                     case 'thumbnail':
-                            _addThumbnail();
-                            thumbName = "_thumbStep";
+                        _addThumbnail();
                         break;
                     case 'addVerticalThumbnail':
-                            _addVerticalThumbnail();
+                        _addVerticalThumbnail();
                         break;
                     case 'addListSlider':
-                            _addListSlider();
+                        _addListSlider();
                         break;
                     case '_fullWidthSlider':
                         _fullWidthSlider(activeImageIndex);
                         break;
                     default:
-                            _addThumbnail();
+                        _addThumbnail();
                         break;
                 }
 
@@ -61,12 +59,13 @@
                         break;
                     case 'autoPlay':
                         if (control.autoPlay) {
+                            console.log(control.autoPlay);
                             objSize.autoPlay = true;
                             setInterval(_autoPlay, settings.speed);
                         }
                         break;
                     case 'title':
-                        if (control.title && !sliderType.addListSlider && !sliderType.fullWidthSlider) {
+                        if (control.title) {
                             _addTitle();
                         }
                         break;
@@ -268,7 +267,7 @@
             }
         },
         _stop = function () {
-            autoPlay = false;
+            objSize.autoPlay = false;
         },
         _addPlayer = function () {
             var player = '<div class="player">' +
@@ -838,7 +837,7 @@
         });
 
         $('.play').click(function () {
-            autoPlay = true;
+            objSize.autoPlay = true;
             _step(+1);
             setInterval(_autoPlay, settings.speed);
             $(this).switchClass('active', 'inactive');
@@ -859,7 +858,7 @@
                // activeImageIndex: 4,
                 galleryHeight: 650,
                 galleryWidth: 1024,
-                speed: 3000,
+                speed: 500,
                 bullet: 'bullet_1',
                 thumb: {
                     width: 150,
@@ -901,8 +900,9 @@
                     corner: ['bottom-right', 'bottom-right', 'bottom-left', 'top-left', 'top-right']
                 },
                 speed: {
-                    minimum: 500,
-                    maximum: 1000 * 60 * 30 //1.800.000 = 30 min
+                    minimum: '500',
+                    maximum: 1000 * 60 * 30
+                    //1.800.000 = 30 min
                 },
                 bullet: ['bullet_1']
             },
@@ -935,8 +935,8 @@
                             }
                         }
                         else if (key == 'speed') {
-                            if (!_minMaxChek(value, attrParams[key])) {
-                                deBug['gallery'][key] = defaults.gallery.speed;
+                            if (!_minMaxChek(value)) {
+                                deBug.speed = defaults.gallery.speed;
                             }
                         }
                         else if (!_check(value, attrParams[key])) {
@@ -950,8 +950,8 @@
                     return ($.inArray(value, attParam) >= 0 || value == attParam ) ? true : false;
             }
 
-            function _minMaxChek(value, attParam) {
-                return (attParam.minimum < value && attParam.maximum > value ) ? true : false;
+            function _minMaxChek(value) {
+                return (attrParams.speed.minimum < value && attrParams.speed.maximum > value ) ? true : false;
             }
 
             function _boleanCheck(value) {
@@ -967,5 +967,8 @@
             $.each(controlArray, function(index, value) {
                 defaults.control[value] = true;
             });
+        }
+        function getType(value) {
+            var type = typeof value;
         }
 })(jQuery);
