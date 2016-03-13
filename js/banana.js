@@ -10,10 +10,9 @@
      * Private methods
      */
     var $active_image = 0, settings, obj, $this, thumbName, activeImageIndex, parent,
-        objectSize, listSlider, thumbOpit, listThumbOpit, sliderType, control, objSize = {},
+        objectSize, listSlider, thumbOpit, listThumbOpit, control, objSize = {},
 
         _setParams = function (_settings, _obj) {
-            sliderType = _settings.sliderType;
             control = _settings.control;
             obj = _obj;
             settings = _settings.gallery;
@@ -27,36 +26,23 @@
         _start = function () {
             _galleryStart();
 
-            for( var key in sliderType) {
-                switch (key) {
+                switch (thumbName) {
                     case 'thumbnail':
-                        if (sliderType.thumbnail) {
-                            _addThumbnail();
-                            thumbName = "_thumbStep";
-                        }
+                        _addThumbnail();
                         break;
                     case 'addVerticalThumbnail':
-                        if (sliderType.addVerticalThumbnail) {
-                            _addVerticalThumbnail();
-                        }
+                        _addVerticalThumbnail();
                         break;
                     case 'addListSlider':
-                        if (sliderType.addListSlider) {
-                            _addListSlider();
-                        }
+                        _addListSlider();
                         break;
-                    case 'fullWidthSlider':
-                        if(sliderType.fullWidthSlider) {
-                            _fullWidthSlider(activeImageIndex);
-                        }
+                    case '_fullWidthSlider':
+                        _fullWidthSlider(activeImageIndex);
                         break;
                     default:
-                        if (sliderType.thumbnail) {
-                            _addThumbnail();
-                        }
+                        _addThumbnail();
                         break;
                 }
-            }
 
             for (var key in control) {
                 switch (key) {
@@ -73,12 +59,13 @@
                         break;
                     case 'autoPlay':
                         if (control.autoPlay) {
+                            console.log(control.autoPlay);
                             objSize.autoPlay = true;
                             setInterval(_autoPlay, settings.speed);
                         }
                         break;
                     case 'title':
-                        if (control.title && !sliderType.addListSlider && !sliderType.fullWidthSlider) {
+                        if (control.title) {
                             _addTitle();
                         }
                         break;
@@ -280,7 +267,7 @@
             }
         },
         _stop = function () {
-            autoPlay = false;
+            objSize.autoPlay = false;
         },
         _addPlayer = function () {
             var player = '<div class="player">' +
@@ -815,10 +802,14 @@
      */
 
     $.fn.banana = function (options) {
-        var obj = $(this).children().filter('.image');
-           // _opitions = _create_deBug(options, attrParams);
+        var obj = $(this).children().filter('.image'),
+            _opitions = options,
+            deBug;
 
-        _setParams($.extend(true, defaults, options), obj);
+        _createControl(_opitions);
+         deBug =  $.extend(true, defaults, _opitions );
+        _create_deBug(deBug, attrParams);
+        _setParams($.extend(true, defaults, deBug), obj);
 
         _start();
 
@@ -846,7 +837,7 @@
         });
 
         $('.play').click(function () {
-            autoPlay = true;
+            objSize.autoPlay = true;
             _step(+1);
             setInterval(_autoPlay, settings.speed);
             $(this).switchClass('active', 'inactive');
@@ -867,7 +858,7 @@
                // activeImageIndex: 4,
                 galleryHeight: 650,
                 galleryWidth: 1024,
-                speed: 3000,
+                speed: 500,
                 bullet: 'bullet_1',
                 thumb: {
                     width: 150,
@@ -889,30 +880,18 @@
                     width: 'window'
                 }
             },
-            control: {
-                imageNumber: true,
-                title: true,
-                bullet: true,
-                autoPlay: false,
-                player: true,
-                arrow: true
-            },
-            sliderType: {
-                thumbnail: false,
-                addVerticalThumbnail: false,
-                addListSlider: false,
-                fullWidthSlider: true
-            }
+            control:{}
         },
         functionParamList = {
             gallery: ['speed', 'bullet', 'title', 'player', 'autoPlay', 'imageNumber', 'playerPosition'],
-            listSlider: [self.gallery, 'listSlider'],
-            verticalThumb: [self.gallery, 'verticalThumb'],
-            horizontalThumb: [self.gallery, 'thumb']
+            _listSlider: ['arrow', 'bullet', 'title'],
+            _verticalThumb: [self.gallery, 'verticalThumb'],
+            _horizontalThumb: [self.gallery, 'thumb'],
+            _fullWidthSlider: ['bullet', 'arrow', 'autoPlay']
         },
         attrParams = {
             gallery: {
-                activeImageIndex: 10000,
+                activeImageIndex: 1,
                 title: {
                     position: ['inside', 'outside', 'over']
                 },
@@ -921,12 +900,13 @@
                     corner: ['bottom-right', 'bottom-right', 'bottom-left', 'top-left', 'top-right']
                 },
                 speed: {
-                    minimum: 500,
-                    maximum: 1000 * 60 * 30 //1.800.000 = 30 min
+                    minimum: '500',
+                    maximum: 1000 * 60 * 30
+                    //1.800.000 = 30 min
                 },
                 bullet: ['bullet_1']
             },
-            switches: {
+            control: {
                 imageNumber: 'bolean',
                 title: 'bolean',
                 bullet: 'bolean',
@@ -939,46 +919,56 @@
                 fullWidthSlider: 'bolean'
             }
         },
-        _create_deBug = function (opitions, attrParams) {
-            $.each(opitions, function (key, value) {
-                var _opitions = {};
+        _create_deBug = function (deBug, attrParams) {
+
+            $.each(deBug, function (key, value) {
                 if (typeof value == "object") {
                     if (key in attrParams) {
                         parent = key;
                         _create_deBug(value, attrParams[key]);
                     }
                 } else {
-                    if (key in attrParams) {
-                        if (parent == 'switches') {
+                        if (key in attrParams && key != 'activeImageIndex') {
+                        if (parent == 'control') {
                             if (!_boleanCheck(value)) {
-                                _options.switches[key] = defaults.switches[key];
+                                deBug.control[key] = defaults.control[key];
                             }
                         }
                         else if (key == 'speed') {
-                            if (!_minMaxChek(value, attrParams[key])) {
-                                _opitions.gallery[key] = defaults.gallery[key];
+                            if (!_minMaxChek(value)) {
+                                deBug.speed = defaults.gallery.speed;
                             }
                         }
                         else if (!_check(value, attrParams[key])) {
-                            _options.gallery[parent][key] = defaults.gallery[parent][key];
+                            deBug['gallery'][key] = defaults.gallery[key];
                         }
                     }
                 }
-                return _opitions;
             });
 
             function _check(value, attParam) {
-                return ($.inArray(value, attParam) >= 0 || value == attParam ) ? true : false;
+                    return ($.inArray(value, attParam) >= 0 || value == attParam ) ? true : false;
             }
 
-            function _minMaxChek(value, attParam) {
-                return (attParam.minimum < value && attParam.maximum > value ) ? true : false;
+            function _minMaxChek(value) {
+                return (attrParams.speed.minimum < value && attrParams.speed.maximum > value ) ? true : false;
             }
 
             function _boleanCheck(value) {
+                console.log(value);
                 if (value == 0 || value == 1 || value == true || value == false || value == '0' || value == '1') {
                     return true;
                 }
             }
         };
+        function _createControl(options) {
+            var controlArray = functionParamList[options.gallery.thumbName];
+
+            $.each(controlArray, function(index, value) {
+                defaults.control[value] = true;
+            });
+        }
+        function getType(value) {
+            var type = typeof value;
+        }
 })(jQuery);
