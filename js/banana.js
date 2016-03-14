@@ -715,6 +715,7 @@
                    var src = obj.eq(index).children().attr('src'),
                        width =  $(document).width();
                    _resize(src, index, width);
+                   $this.prependTo('body');
                }
         },
         _round = function (value, precision, mode) {
