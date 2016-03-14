@@ -33,7 +33,7 @@
                     case 'addVerticalThumbnail':
                         _addVerticalThumbnail();
                         break;
-                    case 'addListSlider':
+                    case '_listSlider':
                         _addListSlider();
                         break;
                     case '_fullWidthSlider':
@@ -510,7 +510,7 @@
                     _thumbnailStep(index, thumb, next, show, hidden);
                     break;
                 case '_listSlider':
-                    thumb = $('.listSlider');;
+                    thumb = $('.listSlider');
                     thumbOpit = listThumbOpit;
                     next = function (index, thumb) {
                         if(index == 1) {
@@ -566,8 +566,8 @@
             var hidden_i, show_i;
 
             if (index == 1) {
-                hidden_i = thumbOpit.displayThumbNumber;
-                show_i  = {index: objectSize-1, move: thumbOpit.maxThumb- 1};
+                hidden_i = listThumbOpit.displayThumbNumber;
+                show_i  = {index: objectSize-1, move: listThumbOpit.maxThumb- 1};
 
                 hidden(thumb, hidden_i);
                 next(index, thumb);
@@ -575,7 +575,7 @@
             }
             else if (index == -1) {
                 hidden_i = objectSize-1;
-                show_i = {index: thumbOpit.displayThumbNumber, move: 0 };
+                show_i = {index: listThumbOpit.displayThumbNumber, move: 0 };
 
                 hidden(thumb, hidden_i);
                 next(index, thumb);
@@ -696,17 +696,13 @@
         },
         _startIntoEnd = function(thumb) {
             if(thumb.children().first().is(':visible')) {
-                var move = thumb.children().first().clone();
-                thumb.children().first().remove();
-                thumb.children().last().after(move);
+                thumb.children().first().prependTo(thumb.children().last());
             _startIntoEnd(thumb);
             }
         },
         _endIntoStart = function(thumb) {
             if(thumb.children().last().is(':hidden')) {
-                var move = thumb.children().last().clone();
-                thumb.children().last().remove();
-                thumb.children().first().before(move);
+                 thumb.children().last().prependTo($('.listSlider'));
             _endIntoStart(thumb);
             }
         },
