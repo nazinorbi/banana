@@ -94,15 +94,15 @@
                     loadImg(img);
                     objSize.width = settings.galleryWidth;
                     objSize.height = settings.galleryHeight;
-                    //_widthOriginalSize();
+                    _widthOriginalSize();
                     break;
             }
 
             function loadImg(img) {
-                $("<img>").attr("src", $(img).attr("src")).load(function () {
-                    origImageSize = {_width: this.width, _height: this.height};
+              //  $("<img>").attr("src", $(img).attr("src")).load(function () {
+                    origImageSize = {width: img.get(0).width, height: img.get(0).height};
                     _widthOriginalSize();
-                });
+              //  });
             }
 
             function _fullWidthSize() {
@@ -118,7 +118,7 @@
             }
 
             function _widthOriginalSize() {
-                imageScale = origImageSize._width / origImageSize._height;
+                imageScale = origImageSize.width / origImageSize.height;
 
                 obj.each(function (index) {
                     var _width = settings.galleryHeight * ($(this).width() / $(this).height());
@@ -127,6 +127,7 @@
                         width: _round(_width) + 'px',
                         'z-index': 0
                     });
+                  $('.gallery').children().eq(index).children().css({height: settings.galleryHeight + 'px' });
 
                     if (index == activeImageIndex) {
                         $this.css({
@@ -179,7 +180,7 @@
                     $this.last().append('<div class="title over"><p class="titleText">' + title + '<div class="titleBac"></div></p></div>');
                     break;
                 default:
-                    $this.last().append('<div class="title outside"><p class="titleText">' + title + '<p class="titleBac"></p></div></div>');
+                    $this.last().append('<div class="title outside"><p class="titleText">' + title + '<dic class="titleBac"></dic></p></div>');
                     break;
             }
             $('.title').css({'width': $this.width(), transform: "translateY(" + verticalPos + "px)"});
@@ -200,7 +201,7 @@
         },
         _arrowStep = function (arrow) {
             var y = (objSize.height / 2 ) * -1,
-                x = objSize.width - arrow.arrowR.width();
+                x = $this.get(0).clientWidth - arrow.arrowR.width();
 
             arrow.arrowR.css({"transform": "translate3d("+x+"px," + y + "px, 0)"});
             arrow.arrowL.css({"transform": "translate3d(0," + y + "px, 0) rotate(180deg)"});
@@ -212,7 +213,6 @@
                 bulletIndex = (index == -1) ? -2 : 0;
 
             objSize.fullWidthCounter = 0;
-
 
             if(thumbName == '_fullWidthSlider' && objSize.fullWidthCounter < objectSize) {
                 _thumbnailSwitch(index, nextIndex);
@@ -244,7 +244,6 @@
             }
         },
         _addBullet = function() {
-            console.log(objSize.width);
             var bullet = '<div class="' + settings.bullet + '"  >',
                 className = null;
 
@@ -405,17 +404,17 @@
 
             thumbOpit = { maxThumb: maxThumb, fullThumbWidth: thumbnailWidth, isOutside: isOutside, displayThumbNumber: displayThumbNumber };
             if ( activeImageIndex - before >= 0 && (activeImageIndex + after) < objectSize-1 ) {
-                console.log('könzbenső');
+                //console.log('könzbenső');
                 middle();
                 _endIntoStart(thumb);
             }
             else if (activeImageIndex-before < 0) {
-                console.log('hátulról előre');
+                //console.log('hátulról előre');
                 endMoveStart();
                 _startIntoEnd(thumb);
             }
             else if(activeImageIndex + after >= maxThumb) {
-                console.log('előről hátra');
+                //console.log('előről hátra');
                 startMoveEnd();
                 _startIntoEnd(thumb);
             }
@@ -627,7 +626,7 @@
 
             var thumbnailHeight = 100, // 100
                 sliderHeight = defaults.gallery.galleryHeight, // 684
-                maxThumb = _round(sliderHeight / thumbnailHeight, 0, 'ROUND_DOWN'), // 7
+                maxThumb = _round(sliderHeight / thumbnailHeight, 0, 'PHP_ROUND_HALF_DOWN'), // 7
                 margin = 5,
                 displayThumbNumber = objectSize - maxThumb, // 5
                 afterActive = maxThumb, // 7
@@ -640,14 +639,14 @@
                         title = obj.eq(i).attr('_title');
 
                     listSlider.append('<div class="listThumb">');
-                    listSlider.children().eq(i).append(image);
+                    listSlider.children().eq(i).append(image.css({height: 53+'px'}));
                     listSlider.children().eq(i).append('<div class="description"><p class="listSliderText">' + text + '</p></div>');
 
                     if (title !== undefined) {
                         listSlider.children().eq(i).children('.description').before('<h3 class="title">' + title + '</h3>');
                     }
                 };
-
+            console.log(maxThumb);
             listThumbOpit =  {displayThumbNumber: displayThumbNumber, maxThumb: maxThumb};
 
             for (var i = 0; i < objectSize; i++) {
@@ -881,7 +880,7 @@
         },
         functionParamList = {
             gallery: ['speed', 'bullet', 'title', 'player', 'autoPlay', 'imageNumber', 'playerPosition'],
-            _listSlider: ['arrow', 'bullet', 'title'],
+            _listSlider: ['arrow', 'bullet', 'autoPlay', 'imageNumber',],
             _verticalThumb: [self.gallery, 'verticalThumb'],
             _horizontalThumb: [self.gallery, 'thumb'],
             _fullWidthSlider: ['bullet', 'arrow', 'autoPlay']
@@ -952,7 +951,6 @@
             }
 
             function _boleanCheck(value) {
-                console.log(value);
                 if (value == 0 || value == 1 || value == true || value == false || value == '0' || value == '1') {
                     return true;
                 }
