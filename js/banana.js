@@ -224,7 +224,15 @@
             _arrowStep(arrow);
 
             obj.removeClass('active').addClass('inactive');
-            $active_image = obj.eq(nextIndex).removeClass('inactive').addClass('active');
+
+            //$active_image = obj.eq(nextIndex).removeClass('inactive').addClass('active');
+
+            obj.eq(nextIndex-1).animate({
+                opacity: 0
+            });
+            obj.eq(nextIndex).animate({
+                opacity: 1
+            })
 
             bullet.filter('.bulletActive').switchClass('bulletActive', 'bulletInactive');
             bullet.eq(currentIndex + bulletIndex + (index * index)).removeClass('bulletInactive').addClass('bulletActive');
@@ -237,7 +245,7 @@
             if ($active_image.length == 0) {
                 $active_image = $this.find('div').first().removeClass('inactive').addClass('active');
                 bullet.first().addClass('bulletInactive').addClass('bulletActive');
-                if (switches.title) {
+                if (control.title) {
                     $this.find('.' + settings.title.position + ' p').text('').text($this.find('.active').attr('text'));
                 }
                 currentIndex = 0;
@@ -512,43 +520,60 @@
                     thumb = $('.listSlider');
                     thumbOpit = listThumbOpit;
                     next = function (index, thumb) {
-                        if(index == 1) {
-                            for(i = listThumbOpit.displayThumbNumber; i < (objectSize); i++) {
-                                step(thumb, i, index);
-                            }
-                        } else if(index == -1) {
-                            for(i = (objectSize-2); i > (objectSize-thumbOpit.maxThumb-1); i--) {
-                                step(thumb, i, index);
-                            }
-                        }
+                        var promise,
+                            direction = index,
+                            firstThumb;
+
+                        firstThumb = (index == 1) ? (objectSize-thumbOpit.maxThumb-1): (objectSize-thumbOpit.maxThumb-1);
+                        promise = thumb.children().eq(firstThumb).nextAll().each(function (index) {
+                            step(thumb, index+objectSize-thumbOpit.maxThumb, direction);
+                        }).promise();
+
                         function step(thumb, i, index) {
                             currentIndex = parseInt(thumb.children().eq(i).css('transform').split(',')[5]);
                             move = (currentIndex - (100 * index) - 5 * index);
-                            thumb.children().eq(i).css({transform: "translate3d(5px," + move  + "px, 0)"});
+                           return  thumb.children().eq(i).animate({
+                                transform: 'translate(5px, '+move+'px)'
+                            }, 500);
                         }
+
+                        return promise;
                     };
                     show = function (index, thumb, show_i) {
-                        var show;
                         if (index == 1) {
                             move = ((thumbOpit.maxThumb - 1) * 100) + thumbOpit.maxThumb * 5;
                             show = thumb.children().first().clone();
                             thumb.children().last().after(show);
                             thumb.children().first().remove();
+                            thumb.children().eq(objectSize - listThumbOpit.displayThumbNumber-1).css({transform: ''});
+                            return local_animate();
                         }
                         else if (index == -1) {
                             move = 5;
                             show = thumb.children().last().clone();
                             thumb.children().first().before(show);
                             thumb.children().last().remove();
+                            thumb.children().first().css({transform: ''});
+                            return local_animate();
                         }
-                        thumb.children().eq(show_i.index).css({
-                            'display': 'block',
-                            'transform': "translate3d(5px, " + move + "px, 0)"
-                        });
+
+                        function local_animate() {
+                             thumb.children().eq(show_i.index).css({
+                                transform: "translate(5px, " + move + "px)"
+                            });
+                        return thumb.children().eq(show_i.index)
+                            .animate({
+                              opacity: 1
+                            }).fadeIn(500).promise();
+                        }
                     };
                     hidden = function (thumb, hidden_i) {
-                        thumb.children().eq(hidden_i).css({display: 'none', transform: ''});
+                        return thumb.children().eq(hidden_i)
+                            .animate({
+                                opacity: 0
+                            }, 500).promise();
                     };
+
                     _thumbnailStep(index, thumb, next, show, hidden);
                     break;
                 case '_verticalThumbStep':
@@ -566,20 +591,18 @@
 
             if (index == 1) {
                 hidden_i = listThumbOpit.displayThumbNumber;
-                show_i  = {index: objectSize-1, move: listThumbOpit.maxThumb- 1};
-
-                hidden(thumb, hidden_i);
-                next(index, thumb);
-                show(index, thumb, show_i);
+                show_i  = {index: objectSize-1, move: listThumbOpit.maxThumb - 1};
             }
             else if (index == -1) {
                 hidden_i = objectSize-1;
                 show_i = {index: listThumbOpit.displayThumbNumber, move: 0 };
-
-                hidden(thumb, hidden_i);
-                next(index, thumb);
-                show(index, thumb, show_i);
             }
+
+            $.when(hidden(thumb, hidden_i))
+                .then(function() {
+                   return next(index, thumb)})
+                .then(function() {
+                    show(index, thumb, show_i)})
         },
         _verticalThumbStep = function (index) {
             var thumbActive = $('.ThumbActive'),
@@ -646,7 +669,6 @@
                         listSlider.children().eq(i).children('.description').before('<h3 class="title">' + title + '</h3>');
                     }
                 };
-            console.log(maxThumb);
             listThumbOpit =  {displayThumbNumber: displayThumbNumber, maxThumb: maxThumb};
 
             for (var i = 0; i < objectSize; i++) {
@@ -656,27 +678,27 @@
                 if (i < activeImageIndex) {
                     if (i <= activeImageIndex - displayThumbNumber - 1) {
                         var y = before * 100 + before * margin + 5;
-                        currentListSlider.css("transform", "translate3d(5px, " + y + "px, 0)");
+                        currentListSlider.css("transform", "translate(5px, " + y + "px)");
                         afterActive--;
                         before++;
                     }
                     else {
-                        currentListSlider.css({'display': 'none'});
+                        currentListSlider.hide();
                     }
                 }
                 else if (i == activeImageIndex) {
-                    currentListSlider.css("transform", "translate3d(5px, 5px, 0)");
+                    currentListSlider.css("transform", "translate(5px, 5px)");
                     active++;
                 }
                 else if (i > activeImageIndex) {
                     y = (active + 1) * margin + (active) * 100;
                     if (afterActive > 0 && active < maxThumb) {
-                        currentListSlider.css("transform", "translate3d(5px,+" + y + "px, 0)");
+                        currentListSlider.css("transform", "translate(5px,+" + y + "px)");
                         afterActive--;
                         active++;
                     }
                     else {
-                        currentListSlider.css({'display': 'none'});
+                        currentListSlider.hide();
                     }
                 }
             }
@@ -693,7 +715,9 @@
                 }
             }
         },
-        _startIntoEnd = function(thumb) {
+        _startIntoEnd = function(thumb, param) {
+            param = ':visible';
+
             if(thumb.children().first().is(':visible')) {
                 thumb.children().first().prependTo(thumb.children().last());
             _startIntoEnd(thumb);
@@ -790,6 +814,9 @@
             function sizeDeBug(i, size) {
 
             }
+        },
+        _gallerySort = function() {
+            _startIntoEnd($this.children(), ':hidden')
         };
 
 
@@ -818,11 +845,11 @@
             }
         });
 
-        $('.arrowL').click(function () {
+        $('.arrowL').stop().click(function () {
             _step(-1);
         });
 
-        $('.arrowR').click(function () {
+        $('.arrowR').stop().click(function () {
             _step(1);
         });
 
