@@ -25,6 +25,7 @@
         },
         _start = function () {
             _galleryStart();
+            _gallerySort();
 
                 switch (thumbName) {
                     case 'thumbnail':
@@ -37,7 +38,7 @@
                         _addListSlider();
                         break;
                     case '_fullWidthSlider':
-                        _fullWidthSlider(activeImageIndex);
+                        _fullWidthSlider();
                         break;
                     default:
                         _addThumbnail();
@@ -195,60 +196,79 @@
             var arrowL = '<div class="arrow arrowL"><div class="arrowIsaideL">X</div></div>',
                 arrowR = '<div class="arrow arrowR"><div class="arrowInsideR">X</div></div>';
 
-            obj.last().after(arrowR, arrowL);
+            $this.children('.image').last().after(arrowR, arrowL);
             var arrow = {arrowR: $('.arrowR'), arrowL: $('.arrowL')};
-            _arrowStep(arrow)
+            _arrowStep()
         },
-        _arrowStep = function (arrow) {
-            var y = (objSize.height / 2 ) * -1,
+        _arrowStep = function () {
+            var arrow = {arrowR:$this.find('.arrowR'), arrowL:$this.find('.arrowL')},
+                y = (objSize.height / 2 ),
                 x = $this.get(0).clientWidth - arrow.arrowR.width();
 
             arrow.arrowR.css({"transform": "translate3d("+x+"px," + y + "px, 0)"});
             arrow.arrowL.css({"transform": "translate3d(0," + y + "px, 0) rotate(180deg)"});
         },
         _step = function (index) {
-            var arrow = {arrowR:$this.find('.arrowR'), arrowL:$this.find('.arrowL')},
-                currentIndex = obj.filter('.active').index(),
-                nextIndex = currentIndex + (1 * index),
-                bulletIndex = (index == -1) ? -2 : 0;
+            var currentIndex = obj.filter('.active').index(),
+                nextIndex = currentIndex + (1 * index);
 
             objSize.fullWidthCounter = 0;
 
-            if(thumbName == '_fullWidthSlider' && objSize.fullWidthCounter < objectSize) {
+            /*if(thumbName == '_fullWidthSlider' && objSize.fullWidthCounter < objectSize) {
                 _thumbnailSwitch(index, nextIndex);
                 objSize.fullWidthCounter++;
             } else {
                 _thumbnailSwitch(index, nextIndex);
+            }*/
+
+            if(index == 1) {
+                _startIntoEnd($this, 'hidden', '.image', true);
             }
+            else if(index == -1) {
+                _endIntoStart($this, '.image', true);
+                $this.children().eq(1).animate({
+                    opacity: 0
+                }, 500);
 
-            _arrowStep(arrow);
+                $this.children().eq(0).animate({
+                    opacity: 1
+                }).fadeIn(2000);
+            }
+            _arrowStep();
 
-            obj.removeClass('active').addClass('inactive');
-
+            //obj.removeClass('active').addClass('inactive');
             //$active_image = obj.eq(nextIndex).removeClass('inactive').addClass('active');
 
-            obj.eq(nextIndex-1).animate({
-                opacity: 0
-            });
-            obj.eq(nextIndex).animate({
-                opacity: 1
-            })
 
-            bullet.filter('.bulletActive').switchClass('bulletActive', 'bulletInactive');
-            bullet.eq(currentIndex + bulletIndex + (index * index)).removeClass('bulletInactive').addClass('bulletActive');
+            bulletStep();
 
             if (control.title) {
-                $this.find('.' + settings.title.position + ' p').text($this.find('.active').attr('text'));
+                addTitle
             }
             currentIndex = currentIndex + (1 * index);
 
             if ($active_image.length == 0) {
                 $active_image = $this.find('div').first().removeClass('inactive').addClass('active');
-                bullet.first().addClass('bulletInactive').addClass('bulletActive');
+                bulletStep(0);
                 if (control.title) {
-                    $this.find('.' + settings.title.position + ' p').text('').text($this.find('.active').attr('text'));
+                    addTitle()
                 }
                 currentIndex = 0;
+            }
+
+            function bulletStep(index) {
+                var bulletIndex = (index == -1) ? -2 : 0;
+
+                if(index !== 0) {
+                    bullet.filter('.bulletActive').switchClass('bulletActive', 'bulletInactive');
+                    bullet.eq(currentIndex + bulletIndex + (index * index)).removeClass('bulletInactive').addClass('bulletActive');
+                } else {
+                    bullet.first().addClass('bulletInactive').addClass('bulletActive');
+                }
+
+            }
+            function addTitle() {
+                $this.find('.' + settings.title.position + 'p').text($this.find('.active').attr('text'));
             }
         },
         _addBullet = function() {
@@ -715,26 +735,42 @@
                 }
             }
         },
-        _startIntoEnd = function(thumb, param) {
-            param = ':visible';
+        _startIntoEnd = function(thumb, param, name, step) {
+            var defParam;
 
-            if(thumb.children().first().is(':visible')) {
-                thumb.children().first().prependTo(thumb.children().last());
-            _startIntoEnd(thumb);
+            (param == ':hidden') ? defParam = ':hidden' :  defParam = ':visible';
+
+            if(thumb.children(name).first().is(defParam)) {
+                var elem = thumb.children(name).first().clone();
+                thumb.children(name).last().after(elem);
+                thumb.children().first().remove();
+
+                if(!step) {
+                    _startIntoEnd(thumb, defParam, name);
+                }
             }
         },
-        _endIntoStart = function(thumb) {
-            if(thumb.children().last().is(':hidden')) {
-                 thumb.children().last().prependTo($('.listSlider'));
-            _endIntoStart(thumb);
+        _endIntoStart = function(thumb, name, step) {
+            if(thumb.children(name).last().is(':hidden')) {
+
+               var show = thumb.children(name).last().clone();
+                thumb.children(name).first().before(show);
+                thumb.children(name).last().remove();
+
+                if(!step) {
+                  _endIntoStart(thumb, name);
+                }
             }
         },
-        _fullWidthSlider = function(index) {
+        _fullWidthSlider = function() {
                if(settings.fullWidthSlider.width == 'window') {
-                   var src = obj.eq(index).children().attr('src'),
-                       width =  $(document).width();
-                   _resize(src, index, width);
-                   $this.prependTo('body');
+                   $this.children().each(function(index) {
+
+                      var src =  $this.children().eq(index).children().attr('src'),
+                      width =  $(document).width();
+                      _resize(src, index, width);
+                      $this.prependTo('body');
+                   });
                }
         },
         _round = function (value, precision, mode) {
@@ -802,13 +838,14 @@
                 mainCanvas = document.createElement("canvas");
                 mainCanvas.width = width;
                 mainCanvas.height = 300;
-                origImg._width = obj.eq(i).children().width();
-                origImg._height = obj.eq(i).children().height();
+                origImg._width = $this.children().eq(i).children().get(0).width;
+                origImg._height = $this.children().eq(i).children().get(0).height;
+                console.log(origImg);
 
                 var ctx = mainCanvas.getContext("2d");
                 ctx.drawImage(image, 0, 0, origImg._width, origImg._height, 0, 0, mainCanvas.width, mainCanvas.height);
 
-                obj.eq(i).children().attr('src', mainCanvas.toDataURL("image/jpeg"));
+                $this.children().eq(i).children().attr('src', mainCanvas.toDataURL("image/jpeg"));
             }
 
             function sizeDeBug(i, size) {
@@ -816,7 +853,7 @@
             }
         },
         _gallerySort = function() {
-            _startIntoEnd($this.children(), ':hidden')
+            _startIntoEnd($this, ':hidden', '.image');
         };
 
 
