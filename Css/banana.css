@@ -17,13 +17,16 @@ body{
 
 /* image */
 .image {
-    position: relative;
+    position: absolute;
     display: none;
+    z-index: -1;
+}
+.image > img {
+    z-index: -1;
 }
 
 .active {
-    display: inline-table;
-    z-index: 1000;
+    display: block;
 }
 
 .active img {
@@ -145,7 +148,7 @@ body{
     cursor: pointer;
     opacity: 0.5;
     overflow: hidden;
-    z-index: 1000;
+    z-index: 1;
     font-family: Arrow;
     font-size: 60px;
     color: #fffafa;
@@ -160,9 +163,7 @@ body{
     float: right;
 
 }
-.arrowL {
-    transform: rotate(180deg);
-}
+
 .banana19l { background-position: -5px -35px; }
 .banana19r { background-position: -60px -30px; }
 .banana19l:hover { background-position: -125px -35px; }
