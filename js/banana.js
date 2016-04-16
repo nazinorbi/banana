@@ -9,11 +9,10 @@
     /*
      * Private methods
      */
-    var $active_image = 0, settings, obj, $this, thumbName, activeImageIndex, parent,
-        objectSize, listSlider, thumbOpit, listThumbOpit, sliderType, control, objSize = {},
+    var settings, obj, $this, thumbName, activeImageIndex, parent,
+        objectSize, listSlider, thumbOpit, listThumbOpit, control, objSize = {},
 
         _setParams = function (_settings, _obj) {
-            sliderType = _settings.sliderType;
             control = _settings.control;
             obj = _obj;
             settings = _settings.gallery;
@@ -26,37 +25,25 @@
         },
         _start = function () {
             _galleryStart();
+            _gallerySort();
 
-            for( var key in sliderType) {
-                switch (key) {
+                switch (thumbName) {
                     case 'thumbnail':
-                        if (sliderType.thumbnail) {
-                            _addThumbnail();
-                            thumbName = "_thumbStep";
-                        }
+                        _addThumbnail();
                         break;
                     case 'addVerticalThumbnail':
-                        if (sliderType.addVerticalThumbnail) {
-                            _addVerticalThumbnail();
-                        }
+                        _addVerticalThumbnail();
                         break;
-                    case 'addListSlider':
-                        if (sliderType.addListSlider) {
-                            _addListSlider();
-                        }
+                    case '_listSlider':
+                        _addListSlider();
                         break;
-                    case 'fullWidthSlider':
-                        if(sliderType.fullWidthSlider) {
-                            _fullWidthSlider(activeImageIndex);
-                        }
+                    case '_fullWidthSlider':
+                        _fullWidthSlider();
                         break;
                     default:
-                        if (sliderType.thumbnail) {
-                            _addThumbnail();
-                        }
+                        _addThumbnail();
                         break;
                 }
-            }
 
             for (var key in control) {
                 switch (key) {
@@ -73,12 +60,13 @@
                         break;
                     case 'autoPlay':
                         if (control.autoPlay) {
+                            console.log(control.autoPlay);
                             objSize.autoPlay = true;
                             setInterval(_autoPlay, settings.speed);
                         }
                         break;
                     case 'title':
-                        if (control.title && !sliderType.addListSlider && !sliderType.fullWidthSlider) {
+                        if (control.title) {
                             _addTitle();
                         }
                         break;
@@ -107,15 +95,15 @@
                     loadImg(img);
                     objSize.width = settings.galleryWidth;
                     objSize.height = settings.galleryHeight;
-                    //_widthOriginalSize();
+                    _widthOriginalSize();
                     break;
             }
 
             function loadImg(img) {
-                $("<img>").attr("src", $(img).attr("src")).load(function () {
-                    origImageSize = {_width: this.width, _height: this.height};
+              //  $("<img>").attr("src", $(img).attr("src")).load(function () {
+                    origImageSize = {width: img.get(0).width, height: img.get(0).height};
                     _widthOriginalSize();
-                });
+              //  });
             }
 
             function _fullWidthSize() {
@@ -131,7 +119,7 @@
             }
 
             function _widthOriginalSize() {
-                imageScale = origImageSize._width / origImageSize._height;
+                imageScale = origImageSize.width / origImageSize.height;
 
                 obj.each(function (index) {
                     var _width = settings.galleryHeight * ($(this).width() / $(this).height());
@@ -140,6 +128,7 @@
                         width: _round(_width) + 'px',
                         'z-index': 0
                     });
+                  $('.gallery').children().eq(index).children().css({height: settings.galleryHeight + 'px' });
 
                     if (index == activeImageIndex) {
                         $this.css({
@@ -192,7 +181,7 @@
                     $this.last().append('<div class="title over"><p class="titleText">' + title + '<div class="titleBac"></div></p></div>');
                     break;
                 default:
-                    $this.last().append('<div class="title outside"><p class="titleText">' + title + '<p class="titleBac"></p></div></div>');
+                    $this.last().append('<div class="title outside"><p class="titleText">' + title + '<dic class="titleBac"></dic></p></div>');
                     break;
             }
             $('.title').css({'width': $this.width(), transform: "translateY(" + verticalPos + "px)"});
@@ -207,57 +196,81 @@
             var arrowL = '<div class="arrow arrowL"><div class="arrowIsaideL">X</div></div>',
                 arrowR = '<div class="arrow arrowR"><div class="arrowInsideR">X</div></div>';
 
-            obj.last().after(arrowR, arrowL);
+            $this.children('.image').last().after(arrowR, arrowL);
             var arrow = {arrowR: $('.arrowR'), arrowL: $('.arrowL')};
-            _arrowStep(arrow)
+            _arrowStep()
         },
-        _arrowStep = function (arrow) {
-            var y = (objSize.height / 2 ) * -1,
-                x = objSize.width - arrow.arrowR.width();
+        _arrowStep = function () {
+            var arrow = {arrowR:$this.find('.arrowR'), arrowL:$this.find('.arrowL')},
+                y = (objSize.height / 2 ),
+                x = $this.get(0).clientWidth - arrow.arrowR.width();
 
             arrow.arrowR.css({"transform": "translate3d("+x+"px," + y + "px, 0)"});
             arrow.arrowL.css({"transform": "translate3d(0," + y + "px, 0) rotate(180deg)"});
         },
-        _step = function (index) {
-            var arrow = {arrowR:$this.find('.arrowR'), arrowL:$this.find('.arrowL')},
-                currentIndex = obj.filter('.active').index(),
+        _step = function (index, n = 0) {
+            var currentIndex = obj.filter('.active').index(),
                 nextIndex = currentIndex + (1 * index),
-                bulletIndex = (index == -1) ? -2 : 0;
+                def = $.Deferred();
 
-            objSize.fullWidthCounter = 0;
+            if(index == 1) {
+               setTimeout(function() {
+                   $.when(_startIntoEnd($this, ':visible', '.image', true))
+                       .then(function () {
+                           $this.children().eq(objectSize-1).animate({
+                               opacity: 0
+                           }).fadeOut(1500);
 
+                           $this.children().eq(0).animate({
+                               opacity: 1
+                           }).fadeIn(1500);
+                            _thumbnailSwitch(index, nextIndex);
+                       })
+                       .then(function() {
+                        def.resolve();
+                   });
+               }, (n == 0)? 0 : 1500);
 
-            if(thumbName == '_fullWidthSlider' && objSize.fullWidthCounter < objectSize) {
-                _thumbnailSwitch(index, nextIndex);
-                objSize.fullWidthCounter++;
-            } else {
-                _thumbnailSwitch(index, nextIndex);
             }
+            else if(index == -1) {
+                    $.when(_endIntoStart($this, '.image', true))
+                        .then(function() {
+                            $this.children().eq(1).animate({
+                                opacity: 0
+                            }).fadeOut(2500);
 
-            _arrowStep(arrow);
+                            $this.children().eq(0).animate({
+                                opacity: 1
+                            }).fadeIn(2500);
+                            _thumbnailSwitch(index, nextIndex);
+                            d.resolve();
+                        })
+            }
+            _arrowStep();
+            bulletStep();
 
-            obj.removeClass('active').addClass('inactive');
-            $active_image = obj.eq(nextIndex).removeClass('inactive').addClass('active');
-
-            bullet.filter('.bulletActive').switchClass('bulletActive', 'bulletInactive');
-            bullet.eq(currentIndex + bulletIndex + (index * index)).removeClass('bulletInactive').addClass('bulletActive');
+            return def;
 
             if (control.title) {
-                $this.find('.' + settings.title.position + ' p').text($this.find('.active').attr('text'));
+                addTitle();
             }
-            currentIndex = currentIndex + (1 * index);
 
-            if ($active_image.length == 0) {
-                $active_image = $this.find('div').first().removeClass('inactive').addClass('active');
-                bullet.first().addClass('bulletInactive').addClass('bulletActive');
-                if (switches.title) {
-                    $this.find('.' + settings.title.position + ' p').text('').text($this.find('.active').attr('text'));
+            function bulletStep(index) {
+                var bulletIndex = (index == -1) ? -2 : 0;
+
+                if(index !== 0) {
+                    bullet.filter('.bulletActive').switchClass('bulletActive', 'bulletInactive');
+                    bullet.eq(currentIndex + bulletIndex + (index * index)).removeClass('bulletInactive').addClass('bulletActive');
+                } else {
+                    bullet.first().addClass('bulletInactive').addClass('bulletActive');
                 }
-                currentIndex = 0;
+
+            }
+            function addTitle() {
+                $this.find('.' + settings.title.position + 'p').text($this.find('.active').attr('text'));
             }
         },
         _addBullet = function() {
-            console.log(objSize.width);
             var bullet = '<div class="' + settings.bullet + '"  >',
                 className = null;
 
@@ -270,7 +283,7 @@
             $this.append(bullet);
             var settingsBullet = $('.' + settings.bullet),
                 bulletLeft = objSize.width / 2 - (settingsBullet.width()) / 2,
-                bulletBottom = ($this.height() * 0.15) * -1;
+                bulletBottom = (objSize.height * 0.85);
             settingsBullet.css({transform: 'translate3d('+bulletLeft+'px, '+bulletBottom+'px, 0)'});
         },
         _autoPlay = function() {
@@ -280,7 +293,7 @@
             }
         },
         _stop = function () {
-            autoPlay = false;
+            objSize.autoPlay = false;
         },
         _addPlayer = function () {
             var player = '<div class="player">' +
@@ -418,17 +431,17 @@
 
             thumbOpit = { maxThumb: maxThumb, fullThumbWidth: thumbnailWidth, isOutside: isOutside, displayThumbNumber: displayThumbNumber };
             if ( activeImageIndex - before >= 0 && (activeImageIndex + after) < objectSize-1 ) {
-                console.log('könzbenső');
+                //console.log('könzbenső');
                 middle();
                 _endIntoStart(thumb);
             }
             else if (activeImageIndex-before < 0) {
-                console.log('hátulról előre');
+                //console.log('hátulról előre');
                 endMoveStart();
                 _startIntoEnd(thumb);
             }
             else if(activeImageIndex + after >= maxThumb) {
-                console.log('előről hátra');
+                //console.log('előről hátra');
                 startMoveEnd();
                 _startIntoEnd(thumb);
             }
@@ -523,47 +536,64 @@
                     _thumbnailStep(index, thumb, next, show, hidden);
                     break;
                 case '_listSlider':
-                    thumb = $('.listSlider');;
+                    thumb = $('.listSlider');
                     thumbOpit = listThumbOpit;
                     next = function (index, thumb) {
-                        if(index == 1) {
-                            for(i = listThumbOpit.displayThumbNumber; i < (objectSize); i++) {
-                                step(thumb, i, index);
-                            }
-                        } else if(index == -1) {
-                            for(i = (objectSize-2); i > (objectSize-thumbOpit.maxThumb-1); i--) {
-                                step(thumb, i, index);
-                            }
-                        }
+                        var promise,
+                            direction = index,
+                            firstThumb;
+
+                        firstThumb = (index == 1) ? (objectSize-thumbOpit.maxThumb-1): (objectSize-thumbOpit.maxThumb-1);
+                        promise = thumb.children().eq(firstThumb).nextAll().each(function (index) {
+                            step(thumb, index+objectSize-thumbOpit.maxThumb, direction);
+                        }).promise();
+
                         function step(thumb, i, index) {
                             currentIndex = parseInt(thumb.children().eq(i).css('transform').split(',')[5]);
                             move = (currentIndex - (100 * index) - 5 * index);
-                            thumb.children().eq(i).css({transform: "translate3d(5px," + move  + "px, 0)"});
+                           return  thumb.children().eq(i).animate({
+                                transform: 'translate(5px, '+move+'px)'
+                            }, 500);
                         }
+
+                        return promise;
                     };
                     show = function (index, thumb, show_i) {
-                        var show;
                         if (index == 1) {
                             move = ((thumbOpit.maxThumb - 1) * 100) + thumbOpit.maxThumb * 5;
                             show = thumb.children().first().clone();
                             thumb.children().last().after(show);
                             thumb.children().first().remove();
+                            thumb.children().eq(objectSize - listThumbOpit.displayThumbNumber-1).css({transform: ''});
+                            return local_animate();
                         }
                         else if (index == -1) {
                             move = 5;
                             show = thumb.children().last().clone();
                             thumb.children().first().before(show);
                             thumb.children().last().remove();
+                            thumb.children().first().css({transform: ''});
+                            return local_animate();
                         }
-                        thumb.children().eq(show_i.index).css({
-                            'display': 'block',
-                            'transform': "translate3d(5px, " + move + "px, 0)"
-                        });
+
+                        function local_animate() {
+                             thumb.children().eq(show_i.index).css({
+                                transform: "translate(5px, " + move + "px)"
+                            });
+                        return thumb.children().eq(show_i.index)
+                            .animate({
+                              opacity: 1
+                            }).fadeIn(500).promise();
+                        }
                     };
                     hidden = function (thumb, hidden_i) {
-                        thumb.children().eq(hidden_i).css({display: 'none', transform: ''});
+                        return thumb.children().eq(hidden_i)
+                            .animate({
+                                opacity: 0
+                            }, 500).promise();
                     };
-                    _thumbnailStep(index, thumb, next, show, hidden);
+
+                   return _thumbnailStep(index, thumb, next, show, hidden);
                     break;
                 case '_verticalThumbStep':
                     _verticalThumbStep(index);
@@ -579,21 +609,19 @@
             var hidden_i, show_i;
 
             if (index == 1) {
-                hidden_i = thumbOpit.displayThumbNumber;
-                show_i  = {index: objectSize-1, move: thumbOpit.maxThumb- 1};
-
-                hidden(thumb, hidden_i);
-                next(index, thumb);
-                show(index, thumb, show_i);
+                hidden_i = listThumbOpit.displayThumbNumber;
+                show_i  = {index: objectSize-1, move: listThumbOpit.maxThumb - 1};
             }
             else if (index == -1) {
                 hidden_i = objectSize-1;
-                show_i = {index: thumbOpit.displayThumbNumber, move: 0 };
-
-                hidden(thumb, hidden_i);
-                next(index, thumb);
-                show(index, thumb, show_i);
+                show_i = {index: listThumbOpit.displayThumbNumber, move: 0 };
             }
+
+            $.when(hidden(thumb, hidden_i))
+                .then(function() {
+                   return next(index, thumb)})
+                .then(function() {
+                   return show(index, thumb, show_i)})
         },
         _verticalThumbStep = function (index) {
             var thumbActive = $('.ThumbActive'),
@@ -640,7 +668,7 @@
 
             var thumbnailHeight = 100, // 100
                 sliderHeight = defaults.gallery.galleryHeight, // 684
-                maxThumb = _round(sliderHeight / thumbnailHeight, 0, 'ROUND_DOWN'), // 7
+                maxThumb = _round(sliderHeight / thumbnailHeight, 0, 'PHP_ROUND_HALF_DOWN'), // 7
                 margin = 5,
                 displayThumbNumber = objectSize - maxThumb, // 5
                 afterActive = maxThumb, // 7
@@ -648,19 +676,17 @@
                 before = objectSize - activeImageIndex,
                 addImage = function (i) {
                     var image = obj.children().eq(i).clone(),
-                    //   imageNumber = obj.eq(i).find('.imageNumber').clone(),
                         text = obj.eq(i).attr('text'),
                         title = obj.eq(i).attr('_title');
 
                     listSlider.append('<div class="listThumb">');
-                    listSlider.children().eq(i).append(image);
+                    listSlider.children().eq(i).append(image.css({height: 53+'px'}));
                     listSlider.children().eq(i).append('<div class="description"><p class="listSliderText">' + text + '</p></div>');
 
                     if (title !== undefined) {
                         listSlider.children().eq(i).children('.description').before('<h3 class="title">' + title + '</h3>');
                     }
                 };
-
             listThumbOpit =  {displayThumbNumber: displayThumbNumber, maxThumb: maxThumb};
 
             for (var i = 0; i < objectSize; i++) {
@@ -670,27 +696,27 @@
                 if (i < activeImageIndex) {
                     if (i <= activeImageIndex - displayThumbNumber - 1) {
                         var y = before * 100 + before * margin + 5;
-                        currentListSlider.css("transform", "translate3d(5px, " + y + "px, 0)");
+                        currentListSlider.css("transform", "translate(5px, " + y + "px)");
                         afterActive--;
                         before++;
                     }
                     else {
-                        currentListSlider.css({'display': 'none'});
+                        currentListSlider.hide();
                     }
                 }
                 else if (i == activeImageIndex) {
-                    currentListSlider.css("transform", "translate3d(5px, 5px, 0)");
+                    currentListSlider.css("transform", "translate(5px, 5px)");
                     active++;
                 }
                 else if (i > activeImageIndex) {
                     y = (active + 1) * margin + (active) * 100;
                     if (afterActive > 0 && active < maxThumb) {
-                        currentListSlider.css("transform", "translate3d(5px,+" + y + "px, 0)");
+                        currentListSlider.css("transform", "translate(5px,+" + y + "px)");
                         afterActive--;
                         active++;
                     }
                     else {
-                        currentListSlider.css({'display': 'none'});
+                        currentListSlider.hide();
                     }
                 }
             }
@@ -700,34 +726,62 @@
         },
         _listSliderClickStep = function (clickedObj) {
             var step = clickedObj.index()-listThumbOpit.displayThumbNumber;
+            console.log(clickedObj.index());
+            console.log(listThumbOpit.displayThumbNumber);
 
             if (step !== 0) {
-                for (var n = 0; n < step; n++) {
-                    _step(1);
+                (function recurse(n, l) {
+                        _step(1, n).then(function() {
+                            if (n + 1 < l) {
+                                //console.log(n);
+                                recurse(n + 1, step);
+                            }
+                        });
+                        })(0, step);
+            }
+                /*for (var n = 0; n < step; n++) {
+                    $.when(next()).then(function() {
+                       return console.log('foo'+n);
+                    })
+                }*/
+
+        },
+        _startIntoEnd = function(thumb, param, name, step) {
+            var defParam;
+
+            (param == ':hidden') ? defParam = ':hidden' :  defParam = ':visible';
+
+            if(thumb.children(name).first().is(defParam)) {
+                var elem = thumb.children(name).first().clone();
+                thumb.children(name).last().after(elem);
+                thumb.children().first().remove();
+
+                if(!step) {
+                    _startIntoEnd(thumb, defParam, name);
                 }
             }
         },
-        _startIntoEnd = function(thumb) {
-            if(thumb.children().first().is(':visible')) {
-                var move = thumb.children().first().clone();
-                thumb.children().first().remove();
-                thumb.children().last().after(move);
-            _startIntoEnd(thumb);
+        _endIntoStart = function(thumb, name, step) {
+            if(thumb.children(name).last().is(':hidden')) {
+
+               var show = thumb.children(name).last().clone();
+                thumb.children(name).first().before(show);
+                thumb.children(name).last().remove();
+
+                if(!step) {
+                  _endIntoStart(thumb, name);
+                }
             }
         },
-        _endIntoStart = function(thumb) {
-            if(thumb.children().last().is(':hidden')) {
-                var move = thumb.children().last().clone();
-                thumb.children().last().remove();
-                thumb.children().first().before(move);
-            _endIntoStart(thumb);
-            }
-        },
-        _fullWidthSlider = function(index) {
+        _fullWidthSlider = function() {
                if(settings.fullWidthSlider.width == 'window') {
-                   var src = obj.eq(index).children().attr('src'),
-                       width =  $(document).width();
-                   _resize(src, index, width);
+                   $this.children().each(function(index) {
+
+                      var src =  $this.children().eq(index).children().attr('src'),
+                      width =  $(document).width();
+                      _resize(src, index, width);
+                      $this.prependTo('body');
+                   });
                }
         },
         _round = function (value, precision, mode) {
@@ -795,18 +849,21 @@
                 mainCanvas = document.createElement("canvas");
                 mainCanvas.width = width;
                 mainCanvas.height = 300;
-                origImg._width = obj.eq(i).children().width();
-                origImg._height = obj.eq(i).children().height();
+                origImg._width = $this.children().eq(i).children().get(0).width;
+                origImg._height = $this.children().eq(i).children().get(0).height;
 
                 var ctx = mainCanvas.getContext("2d");
                 ctx.drawImage(image, 0, 0, origImg._width, origImg._height, 0, 0, mainCanvas.width, mainCanvas.height);
 
-                obj.eq(i).children().attr('src', mainCanvas.toDataURL("image/jpeg"));
+                $this.children().eq(i).children().attr('src', mainCanvas.toDataURL("image/jpeg"));
             }
 
-            function sizeDeBug(i, size) {
+           /* function sizeDeBug(i, size) {
 
-            }
+            }*/
+        },
+        _gallerySort = function() {
+            _startIntoEnd($this, ':hidden', '.image');
         };
 
 
@@ -815,10 +872,14 @@
      */
 
     $.fn.banana = function (options) {
-        var obj = $(this).children().filter('.image');
-           // _opitions = _create_deBug(options, attrParams);
+        var obj = $(this).children().filter('.image'),
+            _opitions = options,
+            deBug;
 
-        _setParams($.extend(true, defaults, options), obj);
+        _createControl(_opitions);
+         deBug =  $.extend(true, defaults, _opitions );
+        _create_deBug(deBug, attrParams);
+        _setParams($.extend(true, defaults, deBug), obj);
 
         _start();
 
@@ -846,7 +907,7 @@
         });
 
         $('.play').click(function () {
-            autoPlay = true;
+            objSize.autoPlay = true;
             _step(+1);
             setInterval(_autoPlay, settings.speed);
             $(this).switchClass('active', 'inactive');
@@ -867,7 +928,7 @@
                // activeImageIndex: 4,
                 galleryHeight: 650,
                 galleryWidth: 1024,
-                speed: 3000,
+                speed: 500,
                 bullet: 'bullet_1',
                 thumb: {
                     width: 150,
@@ -889,30 +950,18 @@
                     width: 'window'
                 }
             },
-            control: {
-                imageNumber: true,
-                title: true,
-                bullet: true,
-                autoPlay: false,
-                player: true,
-                arrow: true
-            },
-            sliderType: {
-                thumbnail: false,
-                addVerticalThumbnail: false,
-                addListSlider: false,
-                fullWidthSlider: true
-            }
+            control:{}
         },
         functionParamList = {
             gallery: ['speed', 'bullet', 'title', 'player', 'autoPlay', 'imageNumber', 'playerPosition'],
-            listSlider: [self.gallery, 'listSlider'],
-            verticalThumb: [self.gallery, 'verticalThumb'],
-            horizontalThumb: [self.gallery, 'thumb']
+            _listSlider: ['arrow', 'bullet', 'autoPlay', 'imageNumber'],
+            _verticalThumb: [self.gallery, 'verticalThumb'],
+            _horizontalThumb: [self.gallery, 'thumb'],
+            _fullWidthSlider: ['bullet', 'arrow', 'autoPlay']
         },
         attrParams = {
             gallery: {
-                activeImageIndex: 10000,
+                activeImageIndex: 1,
                 title: {
                     position: ['inside', 'outside', 'over']
                 },
@@ -921,12 +970,13 @@
                     corner: ['bottom-right', 'bottom-right', 'bottom-left', 'top-left', 'top-right']
                 },
                 speed: {
-                    minimum: 500,
-                    maximum: 1000 * 60 * 30 //1.800.000 = 30 min
+                    minimum: '500',
+                    maximum: 1000 * 60 * 30
+                    //1.800.000 = 30 min
                 },
                 bullet: ['bullet_1']
             },
-            switches: {
+            control: {
                 imageNumber: 'bolean',
                 title: 'bolean',
                 bullet: 'bolean',
@@ -939,40 +989,39 @@
                 fullWidthSlider: 'bolean'
             }
         },
-        _create_deBug = function (opitions, attrParams) {
-            $.each(opitions, function (key, value) {
-                var _opitions = {};
+        _create_deBug = function (deBug, attrParams) {
+
+            $.each(deBug, function (key, value) {
                 if (typeof value == "object") {
                     if (key in attrParams) {
                         parent = key;
                         _create_deBug(value, attrParams[key]);
                     }
                 } else {
-                    if (key in attrParams) {
-                        if (parent == 'switches') {
+                        if (key in attrParams && key != 'activeImageIndex') {
+                        if (parent == 'control') {
                             if (!_boleanCheck(value)) {
-                                _options.switches[key] = defaults.switches[key];
+                                deBug.control[key] = defaults.control[key];
                             }
                         }
                         else if (key == 'speed') {
-                            if (!_minMaxChek(value, attrParams[key])) {
-                                _opitions.gallery[key] = defaults.gallery[key];
+                            if (!_minMaxChek(value)) {
+                                deBug.speed = defaults.gallery.speed;
                             }
                         }
                         else if (!_check(value, attrParams[key])) {
-                            _options.gallery[parent][key] = defaults.gallery[parent][key];
+                            deBug['gallery'][key] = defaults.gallery[key];
                         }
                     }
                 }
-                return _opitions;
             });
 
             function _check(value, attParam) {
-                return ($.inArray(value, attParam) >= 0 || value == attParam ) ? true : false;
+                    return ($.inArray(value, attParam) >= 0 || value == attParam ) ? true : false;
             }
 
-            function _minMaxChek(value, attParam) {
-                return (attParam.minimum < value && attParam.maximum > value ) ? true : false;
+            function _minMaxChek(value) {
+                return (attrParams.speed.minimum < value && attrParams.speed.maximum > value ) ? true : false;
             }
 
             function _boleanCheck(value) {
@@ -981,4 +1030,14 @@
                 }
             }
         };
+        function _createControl(options) {
+            var controlArray = functionParamList[options.gallery.thumbName];
+
+            $.each(controlArray, function(index, value) {
+                defaults.control[value] = true;
+            });
+        }
+        /*function getType(value) {
+            var type = typeof value;
+        }*/
 })(jQuery);
