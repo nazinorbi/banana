@@ -9,7 +9,7 @@
     /*
      * Private methods
      */
-    var $active_image = 0, settings, obj, $this, thumbName, activeImageIndex, parent,
+    var settings, obj, $this, thumbName, activeImageIndex, parent,
         objectSize, listSlider, thumbOpit, listThumbOpit, control, objSize = {},
 
         _setParams = function (_settings, _obj) {
@@ -208,52 +208,51 @@
             arrow.arrowR.css({"transform": "translate3d("+x+"px," + y + "px, 0)"});
             arrow.arrowL.css({"transform": "translate3d(0," + y + "px, 0) rotate(180deg)"});
         },
-        _step = function (index) {
+        _step = function (index, n = 0) {
             var currentIndex = obj.filter('.active').index(),
-                nextIndex = currentIndex + (1 * index);
-
-            objSize.fullWidthCounter = 0;
-
-            /*if(thumbName == '_fullWidthSlider' && objSize.fullWidthCounter < objectSize) {
-                _thumbnailSwitch(index, nextIndex);
-                objSize.fullWidthCounter++;
-            } else {
-                _thumbnailSwitch(index, nextIndex);
-            }*/
+                nextIndex = currentIndex + (1 * index),
+                def = $.Deferred();
 
             if(index == 1) {
-                _startIntoEnd($this, 'hidden', '.image', true);
+               setTimeout(function() {
+                   $.when(_startIntoEnd($this, ':visible', '.image', true))
+                       .then(function () {
+                           $this.children().eq(objectSize-1).animate({
+                               opacity: 0
+                           }).fadeOut(1500);
+
+                           $this.children().eq(0).animate({
+                               opacity: 1
+                           }).fadeIn(1500);
+                            _thumbnailSwitch(index, nextIndex);
+                       })
+                       .then(function() {
+                        def.resolve();
+                   });
+               }, (n == 0)? 0 : 1500);
+
             }
             else if(index == -1) {
-                _endIntoStart($this, '.image', true);
-                $this.children().eq(1).animate({
-                    opacity: 0
-                }, 500);
+                    $.when(_endIntoStart($this, '.image', true))
+                        .then(function() {
+                            $this.children().eq(1).animate({
+                                opacity: 0
+                            }).fadeOut(2500);
 
-                $this.children().eq(0).animate({
-                    opacity: 1
-                }).fadeIn(2000);
+                            $this.children().eq(0).animate({
+                                opacity: 1
+                            }).fadeIn(2500);
+                            _thumbnailSwitch(index, nextIndex);
+                            d.resolve();
+                        })
             }
             _arrowStep();
-
-            //obj.removeClass('active').addClass('inactive');
-            //$active_image = obj.eq(nextIndex).removeClass('inactive').addClass('active');
-
-
             bulletStep();
 
-            if (control.title) {
-                addTitle
-            }
-            currentIndex = currentIndex + (1 * index);
+            return def;
 
-            if ($active_image.length == 0) {
-                $active_image = $this.find('div').first().removeClass('inactive').addClass('active');
-                bulletStep(0);
-                if (control.title) {
-                    addTitle()
-                }
-                currentIndex = 0;
+            if (control.title) {
+                addTitle();
             }
 
             function bulletStep(index) {
@@ -284,7 +283,7 @@
             $this.append(bullet);
             var settingsBullet = $('.' + settings.bullet),
                 bulletLeft = objSize.width / 2 - (settingsBullet.width()) / 2,
-                bulletBottom = ($this.height() * 0.15) * -1;
+                bulletBottom = (objSize.height * 0.85);
             settingsBullet.css({transform: 'translate3d('+bulletLeft+'px, '+bulletBottom+'px, 0)'});
         },
         _autoPlay = function() {
@@ -594,7 +593,7 @@
                             }, 500).promise();
                     };
 
-                    _thumbnailStep(index, thumb, next, show, hidden);
+                   return _thumbnailStep(index, thumb, next, show, hidden);
                     break;
                 case '_verticalThumbStep':
                     _verticalThumbStep(index);
@@ -622,7 +621,7 @@
                 .then(function() {
                    return next(index, thumb)})
                 .then(function() {
-                    show(index, thumb, show_i)})
+                   return show(index, thumb, show_i)})
         },
         _verticalThumbStep = function (index) {
             var thumbActive = $('.ThumbActive'),
@@ -677,7 +676,6 @@
                 before = objectSize - activeImageIndex,
                 addImage = function (i) {
                     var image = obj.children().eq(i).clone(),
-                    //   imageNumber = obj.eq(i).find('.imageNumber').clone(),
                         text = obj.eq(i).attr('text'),
                         title = obj.eq(i).attr('_title');
 
@@ -728,12 +726,25 @@
         },
         _listSliderClickStep = function (clickedObj) {
             var step = clickedObj.index()-listThumbOpit.displayThumbNumber;
+            console.log(clickedObj.index());
+            console.log(listThumbOpit.displayThumbNumber);
 
             if (step !== 0) {
-                for (var n = 0; n < step; n++) {
-                    _step(1);
-                }
+                (function recurse(n, l) {
+                        _step(1, n).then(function() {
+                            if (n + 1 < l) {
+                                //console.log(n);
+                                recurse(n + 1, step);
+                            }
+                        });
+                        })(0, step);
             }
+                /*for (var n = 0; n < step; n++) {
+                    $.when(next()).then(function() {
+                       return console.log('foo'+n);
+                    })
+                }*/
+
         },
         _startIntoEnd = function(thumb, param, name, step) {
             var defParam;
@@ -840,7 +851,6 @@
                 mainCanvas.height = 300;
                 origImg._width = $this.children().eq(i).children().get(0).width;
                 origImg._height = $this.children().eq(i).children().get(0).height;
-                console.log(origImg);
 
                 var ctx = mainCanvas.getContext("2d");
                 ctx.drawImage(image, 0, 0, origImg._width, origImg._height, 0, 0, mainCanvas.width, mainCanvas.height);
@@ -848,9 +858,9 @@
                 $this.children().eq(i).children().attr('src', mainCanvas.toDataURL("image/jpeg"));
             }
 
-            function sizeDeBug(i, size) {
+           /* function sizeDeBug(i, size) {
 
-            }
+            }*/
         },
         _gallerySort = function() {
             _startIntoEnd($this, ':hidden', '.image');
@@ -882,11 +892,11 @@
             }
         });
 
-        $('.arrowL').stop().click(function () {
+        $('.arrowL').click(function () {
             _step(-1);
         });
 
-        $('.arrowR').stop().click(function () {
+        $('.arrowR').click(function () {
             _step(1);
         });
 
@@ -944,7 +954,7 @@
         },
         functionParamList = {
             gallery: ['speed', 'bullet', 'title', 'player', 'autoPlay', 'imageNumber', 'playerPosition'],
-            _listSlider: ['arrow', 'bullet', 'autoPlay', 'imageNumber',],
+            _listSlider: ['arrow', 'bullet', 'autoPlay', 'imageNumber'],
             _verticalThumb: [self.gallery, 'verticalThumb'],
             _horizontalThumb: [self.gallery, 'thumb'],
             _fullWidthSlider: ['bullet', 'arrow', 'autoPlay']
@@ -1027,7 +1037,7 @@
                 defaults.control[value] = true;
             });
         }
-        function getType(value) {
+        /*function getType(value) {
             var type = typeof value;
-        }
+        }*/
 })(jQuery);
