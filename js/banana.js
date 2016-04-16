@@ -1,6 +1,6 @@
 /**
  * Created by nazi on 2015.10.06..
- * version dev v0.2.3
+ * version dev v0.2.4
  */
 
 ;
@@ -9,104 +9,132 @@
     /*
      * Private methods
      */
-    var arrow, arrowR, arrowL, $active_image = 0, settings, title, obj,
-        switches, bullet, $this, autoPlay = false, thumbName, lastImageIndex,
-        activeImageIndex, _options, parent, objectSize, listSlider, thumbOpit, listThumbOpit,
-
-    /*thumChose = {
-     _listSliderStep: function(index) {_listSliderStep(index);},
-     _thumbStep: function(index) {_thumbStep(index);}
-     },*/
+    var $active_image = 0, settings, obj, $this, thumbName, activeImageIndex, parent,
+        objectSize, listSlider, thumbOpit, listThumbOpit, sliderType, control, objSize = {},
 
         _setParams = function (_settings, _obj) {
-            switches = _settings.switches;
+            sliderType = _settings.sliderType;
+            control = _settings.control;
             obj = _obj;
             settings = _settings.gallery;
+            thumbName = _settings.gallery.thumbName;
             $this = obj.parent();
-            lastImageIndex = obj.length - 1;
             objectSize = obj.size();
-            activeImageIndex = defaults.gallery.activeImageIndex();
+            activeImageIndex = _settings.gallery.activeImageIndex();
 
             obj.filter('.image').eq(activeImageIndex).addClass('active');
         },
         _start = function () {
             _galleryStart();
 
-            for (var key in switches) {
+            for( var key in sliderType) {
                 switch (key) {
-                    case 'arrow':
-                        if (switches.arrow) {
-                            _addArrow(obj);
-                        }
-                        break;
-                    case 'bullet':
-                        if (switches.bullet) {
-                            _addBullet(obj);
-                            bullet = $this.find('.' + settings.bullet).children();
-                        }
-                        break;
-                    case 'autoPlay':
-                        if (switches.autoPlay) {
-                            autoPlay = true;
-                            setInterval(_autoPlay, settings.speed);
-                        }
-                        break;
-                    case 'title':
-                        if (switches.title && !switches.addListSlider) {
-                            _addTitle();
-                        }
-                        break;
-                    case 'player':
-                        if (switches.player) {
-                            _addPlayer();
-                        }
-                        break;
                     case 'thumbnail':
-                        if (switches.thumbnail) {
+                        if (sliderType.thumbnail) {
                             _addThumbnail();
                             thumbName = "_thumbStep";
                         }
                         break;
                     case 'addVerticalThumbnail':
-                        if (switches.addVerticalThumbnail) {
+                        if (sliderType.addVerticalThumbnail) {
                             _addVerticalThumbnail();
-                            thumbName = "_verticalThumbStep";
                         }
                         break;
                     case 'addListSlider':
-                        if (switches.addListSlider) {
+                        if (sliderType.addListSlider) {
                             _addListSlider();
-                            thumbName = "_listSliderStep";
+                        }
+                        break;
+                    case 'fullWidthSlider':
+                        if(sliderType.fullWidthSlider) {
+                            _fullWidthSlider(activeImageIndex);
                         }
                         break;
                     default:
-                        //alert(key);
+                        if (sliderType.thumbnail) {
+                            _addThumbnail();
+                        }
+                        break;
+                }
+            }
+
+            for (var key in control) {
+                switch (key) {
+                    case 'arrow':
+                        if (control.arrow) {
+                            _addArrow(obj);
+                        }
+                        break;
+                    case 'bullet':
+                        if (control.bullet) {
+                            _addBullet(obj);
+                            bullet = $this.find('.' + settings.bullet).children();
+                        }
+                        break;
+                    case 'autoPlay':
+                        if (control.autoPlay) {
+                            objSize.autoPlay = true;
+                            setInterval(_autoPlay, settings.speed);
+                        }
+                        break;
+                    case 'title':
+                        if (control.title && !sliderType.addListSlider && !sliderType.fullWidthSlider) {
+                            _addTitle();
+                        }
+                        break;
+                    case 'player':
+                        if (control.player) {
+                            _addPlayer();
+                        }
                         break;
                 }
             }
         },
-        _galleryStart = function () {
-            var img = obj.eq(activeImageIndex).children().clone(),
-                origImageSize, imageScale;
+        _galleryStart = function() {
+            var origImageSize, imageScale;
 
-            $("<img>").attr("src", $(img).attr("src")).load(function () {
-                console.log(this.width);
-                origImageSize = {_width: this.width, _height: this.height};
-                switch (thumbName) {
-                    case '_thumbStep':
-                        _heightOriginalSize();
-                        break;
-                    case '_listSliderStep':
-                        _widthOriginalSize();
-                        break;
+            switch (thumbName) {
+                case '_fullWidthSlider':
+                    objSize.width = $(document).width();
+                    objSize.height = settings.fullWidthSlider.height;
+                    _fullWidthSize();
+                    break;
+                case '_thumbStep':
+                    _heightOriginalSize();
+                    break;
+                case '_listSlider':
+                    var img = obj.eq(activeImageIndex).children().clone();
+                    loadImg(img);
+                    objSize.width = settings.galleryWidth;
+                    objSize.height = settings.galleryHeight;
+                    //_widthOriginalSize();
+                    break;
+            }
+
+            function loadImg(img) {
+                $("<img>").attr("src", $(img).attr("src")).load(function () {
+                    origImageSize = {_width: this.width, _height: this.height};
+                    _widthOriginalSize();
+                });
+            }
+
+            function _fullWidthSize() {
+                switch(settings.fullWidthSlider.width) {
+                    case 'window':
+                        $this.width(objSize.width).height(settings.fullWidthSlider.height);
+                        $this.parent().css({'justify-content': '', display: 'block', width: '' });
+                    break;
+                    case 'gallery':
+                        $this.css({width: settings.galleryWidth, height: settings.fullWidthSlider.height });
+                    break;
                 }
-            });
+            }
 
             function _widthOriginalSize() {
                 imageScale = origImageSize._width / origImageSize._height;
 
                 obj.each(function (index) {
-                    var _width = settings.galleryHeight * $(this).width() / $(this).height();
+                    var _width = settings.galleryHeight * ($(this).width() / $(this).height());
                     $(this).css({
                         height: settings.galleryHeight + 'px',
                         width: _round(_width) + 'px',
@@ -114,7 +142,7 @@
                     });
 
                     if (index == activeImageIndex) {
-                        $('.gallery').css({
+                        $this.css({
                             'height': settings.galleryHeight + 'px',
                             'width': _round(settings.galleryHeight * imageScale)
                         });
@@ -134,7 +162,7 @@
                     });
 
                     if (index == activeImageIndex) {
-                        $('.gallery').css({
+                        $this.css({
                             'width': defaults.gallery.galleryWidth + 'px',
                             'height': _round(defaults.gallery.galleryWidth * imageScale)
                         });
@@ -150,21 +178,21 @@
                 case 'top':
                     break;
                 case 'bottom':
-                    verticalPos = -154;
+                    verticalPos = 0;
                     break;
             }
             switch (settings.title.position) {
                 case 'outside':
-                    $this.last().append('<div class="title outside"><p></p>' + title + '</div>');
+                    $this.last().append('<div class="title outside"><p class="titleText">' + title + '<div class="titleBac"></div></p></div>');
                     break;
                 case 'inside':
-                    $this.last().append('<div class="title inside"><p></p>' + title + '</div>');
+                    $this.last().append('<div class="title inside"><p class="titleText">' + title + '<div class="titleBac"></div></p></div>');
                     break;
                 case 'over':
-                    $this.last().append('<div class="title over"><p></p>' + title + '</div>');
+                    $this.last().append('<div class="title over"><p class="titleText">' + title + '<div class="titleBac"></div></p></div>');
                     break;
                 default:
-                    $this.last().append('<div class="title outside"><p></p>' + title + '</div>');
+                    $this.last().append('<div class="title outside"><p class="titleText">' + title + '<p class="titleBac"></p></div></div>');
                     break;
             }
             $('.title').css({'width': $this.width(), transform: "translateY(" + verticalPos + "px)"});
@@ -180,36 +208,33 @@
                 arrowR = '<div class="arrow arrowR"><div class="arrowInsideR">X</div></div>';
 
             obj.last().after(arrowR, arrowL);
-            arrow = {arrowR: $('.arrowR'), arrowL: $('.arrowL')};
-            _arrowStep()
+            var arrow = {arrowR: $('.arrowR'), arrowL: $('.arrowL')};
+            _arrowStep(arrow)
         },
-        _arrowStep = function () {
-            var y = (defaults.gallery.galleryHeight / 2 + arrow.arrowR.height() / 2 ) * -1,
-                x = $this.width(),
-                arrowL_y = y - arrow.arrowR.height(), arrowR_x,
-                browserObjAgent = navigator.userAgent.toLowerCase();
+        _arrowStep = function (arrow) {
+            var y = (objSize.height / 2 ) * -1,
+                x = objSize.width - arrow.arrowR.width();
 
-            // console.log($('.gallery').get(0).scrollWidth);
-            // console.log( $('.gallery'));
-
-            if (browserObjAgent.indexOf("chrome") > -1) {
-                arrowR_x = x - arrow.arrowR.width();
-            } else if (browserObjAgent.indexOf('firefox') > -1) {
-                arrowR_x = x;
-            }
-            arrow.arrowR.css({"transform": "translate3d(0," + arrowL_y + "px, 0)"});
-            arrow.arrowL.css({"transform": "translate3d(0," + arrowL_y + "px, 0) rotate(180deg)"});
+            arrow.arrowR.css({"transform": "translate3d("+x+"px," + y + "px, 0)"});
+            arrow.arrowL.css({"transform": "translate3d(0," + y + "px, 0) rotate(180deg)"});
         },
         _step = function (index) {
-            var arrowL = $this.find('.arrowL'),
+            var arrow = {arrowR:$this.find('.arrowR'), arrowL:$this.find('.arrowL')},
                 currentIndex = obj.filter('.active').index(),
                 nextIndex = currentIndex + (1 * index),
                 bulletIndex = (index == -1) ? -2 : 0;
 
-            $('.gallery').width(obj.eq(nextIndex).width());
+            objSize.fullWidthCounter = 0;
 
-            _thumbnailSwitch(index);
-            _arrowStep();
+
+            if(thumbName == '_fullWidthSlider' && objSize.fullWidthCounter < objectSize) {
+                _thumbnailSwitch(index, nextIndex);
+                objSize.fullWidthCounter++;
+            } else {
+                _thumbnailSwitch(index, nextIndex);
+            }
+
+            _arrowStep(arrow);
 
             obj.removeClass('active').addClass('inactive');
             $active_image = obj.eq(nextIndex).removeClass('inactive').addClass('active');
@@ -217,7 +242,7 @@
             bullet.filter('.bulletActive').switchClass('bulletActive', 'bulletInactive');
             bullet.eq(currentIndex + bulletIndex + (index * index)).removeClass('bulletInactive').addClass('bulletActive');
 
-            if (switches.title) {
+            if (control.title) {
                 $this.find('.' + settings.title.position + ' p').text($this.find('.active').attr('text'));
             }
             currentIndex = currentIndex + (1 * index);
@@ -231,24 +256,25 @@
                 currentIndex = 0;
             }
         },
-        _addBullet = function (obj) {
-            var bullet = '<object class="' + settings.bullet + '"  >',
+        _addBullet = function() {
+            console.log(objSize.width);
+            var bullet = '<div class="' + settings.bullet + '"  >',
                 className = null;
 
-            for (var i = 1; i <= obj.length; i++) {
+            for (var i = 1; i <= objectSize; i++) {
                 (i - 1 == activeImageIndex) ? className = 'bulletActive' : className = 'bulletInactive';
                 bullet += '<div class= "bullet ' + className + '" ><div class="inner"></div></div>';
             }
 
-            bullet += '</object>';
+            bullet += '</div>';
             $this.append(bullet);
             var settingsBullet = $('.' + settings.bullet),
-                bulletLeft = $this.width() / 2 - (settingsBullet.width()) / 2,
-                bulletBottom = $this.height() * 0.1;
-            settingsBullet.css({'left': bulletLeft, 'bottom': bulletBottom});
+                bulletLeft = objSize.width / 2 - (settingsBullet.width()) / 2,
+                bulletBottom = ($this.height() * 0.15) * -1;
+            settingsBullet.css({transform: 'translate3d('+bulletLeft+'px, '+bulletBottom+'px, 0)'});
         },
-        _autoPlay = function () {
-            if (autoPlay) {
+        _autoPlay = function() {
+            if (objSize.autoPlay) {
                 var index = 0;
                 _step(index + 1);
             }
@@ -453,7 +479,7 @@
                 verticalThumb.children().eq(thumbIndex - 1).children('div').eq(1).addClass('ThumbActive');
             }
         },
-        _thumbnailSwitch = function (index) {
+        _thumbnailSwitch = function (index, nextIndex) {
             var move, i, next, hidden, show, thumb, currentIndex;
             switch (thumbName) {
                 case '_thumbStep':
@@ -496,8 +522,8 @@
                     };
                     _thumbnailStep(index, thumb, next, show, hidden);
                     break;
-                case '_listSliderStep':
-                    thumb = $('.listSlider');
+                case '_listSlider':
+                    thumb = $('.listSlider');;
                     thumbOpit = listThumbOpit;
                     next = function (index, thumb) {
                         if(index == 1) {
@@ -535,12 +561,15 @@
                         });
                     };
                     hidden = function (thumb, hidden_i) {
-                        thumb.children().eq(hidden_i).css({display: 'none', transform: ''}).attr('data-sort', 'null');
+                        thumb.children().eq(hidden_i).css({display: 'none', transform: ''});
                     };
                     _thumbnailStep(index, thumb, next, show, hidden);
                     break;
                 case '_verticalThumbStep':
                     _verticalThumbStep(index);
+                    break;
+                case '_fullWidthSlider':
+                    _fullWidthSlider(nextIndex);
                     break;
                 default:
                     break;
@@ -623,7 +652,7 @@
                         text = obj.eq(i).attr('text'),
                         title = obj.eq(i).attr('_title');
 
-                    listSlider.append('<div></div>');
+                    listSlider.append('<div class="listThumb">');
                     listSlider.children().eq(i).append(image);
                     listSlider.children().eq(i).append('<div class="description"><p class="listSliderText">' + text + '</p></div>');
 
@@ -631,7 +660,8 @@
                         listSlider.children().eq(i).children('.description').before('<h3 class="title">' + title + '</h3>');
                     }
                 };
-            listThumbOpit = {displayThumbNumber: displayThumbNumber, maxThumb: maxThumb};
+
+            listThumbOpit =  {displayThumbNumber: displayThumbNumber, maxThumb: maxThumb};
 
             for (var i = 0; i < objectSize; i++) {
                 addImage(i);
@@ -655,21 +685,21 @@
                 else if (i > activeImageIndex) {
                     y = (active + 1) * margin + (active) * 100;
                     if (afterActive > 0 && active < maxThumb) {
-                        currentListSlider.css("transform", "translate3d(5px,+" + y + "px, 0)").attr('data-sort', y);
+                        currentListSlider.css("transform", "translate3d(5px,+" + y + "px, 0)");
                         afterActive--;
                         active++;
                     }
                     else {
-                        currentListSlider.css({'display': 'none'}).attr('data-sort', 'null');
+                        currentListSlider.css({'display': 'none'});
                     }
                 }
             }
             _addImageNumber(listSlider);
-            _startIntoEnd(listSlider);
+            _endIntoStart(listSlider);
 
         },
         _listSliderClickStep = function (clickedObj) {
-            var step = _round(clickedObj.attr('data-sort') / 100, 0, 'ROUND_DOWN');
+            var step = clickedObj.index()-listThumbOpit.displayThumbNumber;
 
             if (step !== 0) {
                 for (var n = 0; n < step; n++) {
@@ -692,6 +722,13 @@
                 thumb.children().first().before(move);
             _endIntoStart(thumb);
             }
+        },
+        _fullWidthSlider = function(index) {
+               if(settings.fullWidthSlider.width == 'window') {
+                   var src = obj.eq(index).children().attr('src'),
+                       width =  $(document).width();
+                   _resize(src, index, width);
+               }
         },
         _round = function (value, precision, mode) {
 
@@ -730,7 +767,48 @@
                     break;
             }
             return (isHalf ? value : Math.round(value)) / m;
+        },
+        _resize = function (src, i, width) {
+            var img, mainCanvas, origImg = {};
+
+            startResize(src);
+
+            function startResize(src) {
+                $.when(
+                    createImage(src)
+                ).then(resize, function () {console.log('error')});
+            }
+
+            function createImage(src) {
+                var deferred = $.Deferred();
+
+                img = new Image();
+
+                img.onload = function() {
+                    deferred.resolve(img);
+                };
+                img.src = src;
+                return deferred.promise();
+            }
+
+            function resize(image) {
+                mainCanvas = document.createElement("canvas");
+                mainCanvas.width = width;
+                mainCanvas.height = 300;
+                origImg._width = obj.eq(i).children().width();
+                origImg._height = obj.eq(i).children().height();
+
+                var ctx = mainCanvas.getContext("2d");
+                ctx.drawImage(image, 0, 0, origImg._width, origImg._height, 0, 0, mainCanvas.width, mainCanvas.height);
+
+                obj.eq(i).children().attr('src', mainCanvas.toDataURL("image/jpeg"));
+            }
+
+            function sizeDeBug(i, size) {
+
+            }
         };
+
 
     /*
      * Public methods
@@ -738,11 +816,9 @@
 
     $.fn.banana = function (options) {
         var obj = $(this).children().filter('.image');
+           // _opitions = _create_deBug(options, attrParams);
 
-        _options = options;
-
-        _create_deBug(_options, attrParams);
-        _setParams($.extend(true, defaults, _options), obj);
+        _setParams($.extend(true, defaults, options), obj);
 
         _start();
 
@@ -755,11 +831,11 @@
             }
         });
 
-        arrow.arrowL.click(function () {
+        $('.arrowL').click(function () {
             _step(-1);
         });
 
-        arrow.arrowR.click(function () {
+        $('.arrowR').click(function () {
             _step(1);
         });
 
@@ -776,16 +852,17 @@
             $(this).switchClass('active', 'inactive');
             $('.stop').switchClass('inactive', 'active');
         });
-        $('.listSlider').children().click(function () {
+        $('.listSlider').on('click', '.listThumb',function() {
             _listSliderClickStep($(this));
         });
     };
 
     var defaults = {
             gallery: {
+                thumbName: '_listSlider',
                  activeImageIndex: function() {
                     //return  Math.floor((Math.random() * (objectSize-1)) +1);
-                     return 8;
+                     return 4;
                  },
                // activeImageIndex: 4,
                 galleryHeight: 650,
@@ -804,18 +881,27 @@
                 playerPosition: {
                     position: 'over',
                     corner: 'bottom-right'
+                },
+                fullWidthSlider: {
+                    height: 300,
+                    before: true,
+                    after: false,
+                    width: 'window'
                 }
             },
-            switches: {
+            control: {
                 imageNumber: true,
                 title: true,
                 bullet: true,
                 autoPlay: false,
                 player: true,
-                arrow: true,
+                arrow: true
+            },
+            sliderType: {
                 thumbnail: false,
                 addVerticalThumbnail: false,
-                addListSlider: true
+                addListSlider: false,
+                fullWidthSlider: true
             }
         },
         functionParamList = {
@@ -849,11 +935,13 @@
                 arrow: 'bolean',
                 thumbnail: 'bolean',
                 addVerticalThumbnail: 'bolean',
-                addListSlider: 'bolean'
+                addListSlider: 'bolean',
+                fullWidthSlider: 'bolean'
             }
         },
         _create_deBug = function (opitions, attrParams) {
             $.each(opitions, function (key, value) {
+                var _opitions = {};
                 if (typeof value == "object") {
                     if (key in attrParams) {
                         parent = key;
@@ -868,7 +956,7 @@
                         }
                         else if (key == 'speed') {
                             if (!_minMaxChek(value, attrParams[key])) {
-                                _options.gallery[key] = defaults.gallery[key];
+                                _opitions.gallery[key] = defaults.gallery[key];
                             }
                         }
                         else if (!_check(value, attrParams[key])) {
@@ -876,6 +964,7 @@
                         }
                     }
                 }
+                return _opitions;
             });
 
             function _check(value, attParam) {

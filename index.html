@@ -15,6 +15,7 @@
     $(document).ready(function() {
         $('.gallery').banana({
             gallery: {
+                thumbName: '_fullWidthSlider',
                 speed: 400,
                 title: {
                     position: 'inside'
@@ -24,22 +25,25 @@
                     corner: 'bottom-right'
                 }
             },
-            switches: {
+            control: {
                 imageNumber: true,
                 title: true,
                 bullet: true,
                 autoPlay: false,
                 player: false,
-                arrow: true,
+                arrow: true
+            },
+            sliderType: {
                 thumbnail: false,
                 addVerticalThumbnail: false,
-                addListSlider: true
+                addListSlider: false,
+                fullWidthSlider: true
             }
         });
-        $('.thumb img').fakecrop();
+      <!--  $('.thumb img').fakecrop(); -->
     });
 </script>
- <small>Image gallery (ps, try using mouse scroll wheel) </small>
+ <h2 class="name">Banana Image gallery</h2>
 
 <div class='box' style="display: flex; justify-content: center">
     <div class="gallery">
