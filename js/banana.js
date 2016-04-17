@@ -1,6 +1,6 @@
 /**
  * Created by nazi on 2015.10.06..
- * version dev v0.2.4
+ * version dev v0.2.5
  */
 
 ;
@@ -216,20 +216,20 @@
             if(index == 1) {
                setTimeout(function() {
                    $.when(_startIntoEnd($this, ':visible', '.image', true))
-                       .then(function () {
-                           $this.children().eq(objectSize-1).animate({
+                       .then(function() {
+                          $this.children().eq(objectSize-1).animate({
                                opacity: 0
-                           }).fadeOut(1500);
+                           }).fadeOut(2500);
 
                            $this.children().eq(0).animate({
                                opacity: 1
-                           }).fadeIn(1500);
+                           }).fadeIn(2500);
                             _thumbnailSwitch(index, nextIndex);
                        })
                        .then(function() {
                         def.resolve();
                    });
-               }, (n == 0)? 0 : 1500);
+               }, (n == 0)? 0 : 2500);
 
             }
             else if(index == -1) {
@@ -243,7 +243,6 @@
                                 opacity: 1
                             }).fadeIn(2500);
                             _thumbnailSwitch(index, nextIndex);
-                            d.resolve();
                         })
             }
             _arrowStep();
@@ -726,14 +725,15 @@
         },
         _listSliderClickStep = function (clickedObj) {
             var step = clickedObj.index()-listThumbOpit.displayThumbNumber;
-            console.log(clickedObj.index());
-            console.log(listThumbOpit.displayThumbNumber);
+            //console.log(clickedObj.index());
+            //console.log(listThumbOpit.displayThumbNumber);
+           // console.log(step);
 
             if (step !== 0) {
                 (function recurse(n, l) {
                         _step(1, n).then(function() {
                             if (n + 1 < l) {
-                                //console.log(n);
+                                console.log(n);
                                 recurse(n + 1, step);
                             }
                         });
